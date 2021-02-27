@@ -1,10 +1,14 @@
 import json
 import pdb
+import urllib.request
 import os
-MESH_PATH = './mesh_2020.jsonl'
+MESH_PATH = 'mesh/mesh_2020.jsonl'
 MESH_DIRPATH = './mesh/'
+# https://github.com/allenai/scispacy/blob/master/scispacy/linking_utils.py#L99
+MESH_URL = 'https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl'
 
 def mesh_loader():
+    urllib.request.urlretrieve(MESH_URL, 'mesh_2020.jsonl')
     concepts = list()
     with open(MESH_PATH, 'r') as f:
         for line in f:
