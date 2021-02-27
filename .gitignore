@@ -1,0 +1,8 @@
+venv/*
+./idea/*
+mesh_2020.jsonl
+./__pycache__/*
+./dataset/*
+./preprocessed_doc_dir/*
+./movie_review/*
+./mesh/
