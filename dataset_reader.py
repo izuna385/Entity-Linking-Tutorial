@@ -38,7 +38,7 @@ class BC5CDRReader(DatasetReader):
         self.dui2idx, self.idx2dui, self.dui2canonical, self.dui2definition = self._kb_loader()
 
     @overrides
-    def _read(self, train_dev_test_flag: str) -> Iterable[Instance]:
+    def _read(self, train_dev_test_flag: str) -> List:
         '''
         :param train_dev_test_flag: 'train', 'dev', 'test'
         :return:
