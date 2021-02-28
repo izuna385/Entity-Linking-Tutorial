@@ -41,7 +41,7 @@ class BC5CDRReader(DatasetReader):
     def _read(self, train_dev_test_flag: str) -> list:
         '''
         :param train_dev_test_flag: 'train', 'dev', 'test'
-        :return:
+        :return: list of instances
         '''
         mention_ids, instances = list(), list()
         if train_dev_test_flag == 'train':
