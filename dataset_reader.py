@@ -1,16 +1,8 @@
 import tempfile
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable
 from overrides import overrides
 from commons import CANONICAL_AND_DEF_CONNECTTOKEN, MENTION_START_TOKEN, MENTION_END_TOKEN
 import torch
-
-from allennlp.data import (
-    DataLoader,
-    DatasetReader,
-    Instance,
-    Vocabulary,
-    TextFieldTensors,
-)
 from allennlp.data import Instance
 from allennlp.data.dataset_readers import DatasetReader
 from allennlp.data.fields import SpanField, ListField, TextField, MetadataField, ArrayField, SequenceLabelField, LabelField
@@ -24,6 +16,7 @@ import pdb
 from tqdm import tqdm
 import json
 from tokenizer import CustomTokenizer
+import numpy as np
 
 class BC5CDRReader(DatasetReader):
     def __init__(
@@ -53,26 +46,22 @@ class BC5CDRReader(DatasetReader):
         mention_ids = list()
         if train_dev_test_flag == 'train':
             mention_ids += self.train_mention_ids
-            # Because original data is sorted with pmid documents, we have to shuffle data points for in-batch training.
-            random.shuffle(mention_ids)
         elif train_dev_test_flag == 'dev':
             mention_ids += self.dev_mention_ids
         elif train_dev_test_flag == 'test':
             mention_ids += self.test_mention_ids
+        elif train_dev_test_flag == 'train_and_dev':
+            mention_ids += self.train_mention_ids
+            mention_ids += self.dev_mention_ids
 
         for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
-            data = self._one_line_parser(mention_uniq_id=mention_uniq_id)
-            # yield self._text_to_instance(data=data)
-        #
-        # with open(file_path, "r") as lines:
-        #     for line in lines:
-        #         text, sentiment = line.strip().split("\t")
-        #         tokens = self.tokenizer.tokenize(text)
-        #         if self.max_tokens:
-        #             tokens = tokens[: self.max_tokens]
-        #         text_field = TextField(tokens, self.token_indexers)
-        #         label_field = LabelField(sentiment)
-        #         yield Instance({"text": text_field, "label": label_field})
+            try:
+                data = self._one_line_parser(mention_uniq_id=mention_uniq_id)
+                yield self.text_to_instance(data=data)
+            except:
+                print(mention_uniq_id, self.id2mention[mention_uniq_id])
+                print('Warning. This CUI is not included in MeSH.')
+
 
     def _train_dev_test_pmid_returner(self):
         '''
@@ -206,14 +195,7 @@ class BC5CDRReader(DatasetReader):
         fields = {"context": context_field}
         fields['gold_dui_canonical_and_def_concatenated'] = TextField(data['gold_dui_canonical_and_def_concatenated'],
                                                                  self.token_indexers)
-        fields['gold_duidx'] = ArrayField(np.array(data['gold_cuidx']))
+        fields['gold_duidx'] = ArrayField(np.array(data['gold_duidx']))
         fields['mention_uniq_id'] = ArrayField(np.array(data['mention_uniq_id']))
 
         return Instance(fields)
-
-
-if __name__ == '__main__':
-    config = Biencoder_params()
-    params = config.opts
-    reader = BC5CDRReader(params)
-    reader._read('train')

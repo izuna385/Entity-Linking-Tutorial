@@ -8,3 +8,4 @@ mesh/mesh_2020.jsonl
 ./mesh/
 ./vocab_file/*
 ./biobert/*
+./tmp/*
