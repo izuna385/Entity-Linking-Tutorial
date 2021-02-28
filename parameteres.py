@@ -20,10 +20,11 @@ class Biencoder_params:
         parser.add_argument('-amsgrad', action='store', default=False, type=strtobool)
         parser.add_argument('-word_embedding_dropout', action="store", default=0.1, type=float)
         parser.add_argument('-cuda_devices', action="store", default='0', type=str)
+        parser.add_argument('-scoring_function_for_model', action="store", default='cossim', type=str)
 
-        parser.add_argument('-num_epochs', action="store", default=30, type=int)
-        parser.add_argument('-batch_size_for_train', action="store", default=32, type=int)
-        parser.add_argument('-batch_size_for_eval', action="store", default=32, type=int)
+        parser.add_argument('-num_epochs', action="store", default=10, type=int)
+        parser.add_argument('-batch_size_for_train', action="store", default=16, type=int)
+        parser.add_argument('-batch_size_for_eval', action="store", default=16, type=int)
         parser.add_argument('-hard_negatives_num', action="store", default=10, type=int)
         parser.add_argument('-train_data_num_sampled', action="store", default=-1, type=int) # -1: use all
 
