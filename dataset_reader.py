@@ -1,6 +1,7 @@
 import tempfile
 from typing import Dict, Iterable, List, Tuple
-
+from overrides import overrides
+from commons import CANONICAL_AND_DEF_CONNECTTOKEN, MENTION_START_TOKEN, MENTION_END_TOKEN
 import torch
 
 from allennlp.data import (
@@ -10,20 +11,11 @@ from allennlp.data import (
     Vocabulary,
     TextFieldTensors,
 )
-from allennlp.data.data_loaders import SimpleDataLoader
+from allennlp.data import Instance
+from allennlp.data.dataset_readers import DatasetReader
+from allennlp.data.fields import SpanField, ListField, TextField, MetadataField, ArrayField, SequenceLabelField, LabelField
 from allennlp.data.fields import LabelField, TextField
-from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 from allennlp.data.tokenizers import Token, Tokenizer, WhitespaceTokenizer
-from allennlp.models import Model
-from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder
-from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
-from allennlp.modules.token_embedders import Embedding
-from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder
-from allennlp.nn import util
-from allennlp.training.metrics import CategoricalAccuracy
-from allennlp.training.optimizers import AdamOptimizer
-from allennlp.training.trainer import Trainer, GradientDescentTrainer
-from allennlp.training.util import evaluate
 from parameteres import Biencoder_params
 import glob
 import os
@@ -31,44 +23,46 @@ import random
 import pdb
 from tqdm import tqdm
 import json
+from tokenizer import CustomTokenizer
 
 class BC5CDRReader(DatasetReader):
     def __init__(
         self,
         config,
-        tokenizer: Tokenizer = None,
-        token_indexers: Dict[str, TokenIndexer] = None,
         max_tokens: int = None,
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.tokenizer = tokenizer or WhitespaceTokenizer()
-        self.token_indexers = token_indexers or {"tokens": SingleIdTokenIndexer()}
+        self.custom_tokenizer_class = CustomTokenizer(config=config)
+        self.token_indexers = self.custom_tokenizer_class.token_indexer_returner()
         self.max_tokens = max_tokens
         self.config = config
         self.train_pmids, self.dev_pmids, self.test_pmids = self._train_dev_test_pmid_returner()
         self.id2mention, self.train_mention_ids, self.dev_mention_ids, self.test_mention_ids = \
             self._mention_id_returner(self.train_pmids, self.dev_pmids, self.test_pmids)
 
+        # kb loading
+        self.dui2idx, self.idx2dui, self.dui2canonical, self.dui2definition = self._kb_loader()
+
+    @overrides
     def _read(self, train_dev_test_flag: str) -> Iterable[Instance]:
         '''
         :param train_dev_test_flag: 'train', 'dev', 'test'
         :return:
         '''
-
         mention_ids = list()
         if train_dev_test_flag == 'train':
-            mention_ids += self.train_mention_id
+            mention_ids += self.train_mention_ids
             # Because original data is sorted with pmid documents, we have to shuffle data points for in-batch training.
             random.shuffle(mention_ids)
         elif train_dev_test_flag == 'dev':
-            mention_ids += self.dev_mention_id
+            mention_ids += self.dev_mention_ids
         elif train_dev_test_flag == 'test':
-            mention_ids += self.test_mention_id
+            mention_ids += self.test_mention_ids
 
         for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
             data = self._one_line_parser(mention_uniq_id=mention_uniq_id)
-            yield self._text_to_instance(data=data)
+            # yield self._text_to_instance(data=data)
         #
         # with open(file_path, "r") as lines:
         #     for line in lines:
@@ -158,27 +152,68 @@ class BC5CDRReader(DatasetReader):
 
         return mentions
 
+    def _kb_loader(self):
+        kb_dir = self.config.kb_dir
+        with open(kb_dir + 'dui2canonical.json', 'r') as f:
+            dui2canonical = json.load(f)
+
+        with open(kb_dir + 'dui2definition.json', 'r') as g:
+            dui2definition = json.load(g)
+
+        with open(kb_dir + 'dui2idx.json', 'r') as h:
+            dui2idx_ = json.load(h)
+        dui2idx = {}
+        for dui, idx_str in dui2idx_.items():
+            dui2idx.update({dui: int(idx_str)})
+
+        with open(kb_dir + 'idx2dui.json', 'r') as k:
+            idx2dui_ = json.load(k)
+        idx2dui = {}
+        for idx_str, dui in idx2dui_.items():
+            idx2dui.update({int(idx_str): dui})
+
+        return dui2idx, idx2dui, dui2canonical, dui2definition
+
     def _one_line_parser(self, mention_uniq_id):
         line = self.id2mention[mention_uniq_id]
         gold_dui, _, gold_surface_mention, target_anchor_included_sentence = line.split('\t')
-        tokenized_context_including_target_anchors = self._mention_and_context_tokenizer(
+        tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
             txt=target_anchor_included_sentence)
         tokenized_context_including_target_anchors = [Token(split_token) for split_token in
                                                       tokenized_context_including_target_anchors]
         data = {'context': tokenized_context_including_target_anchors}
-        data['gold_duidx'] = int(self.dui2idx[gold_dui])
+
         data['mention_uniq_id'] = int(mention_uniq_id)
-        data['gold_cui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
+        data['gold_duidx'] = int(self.dui2idx[gold_dui])
+        data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
 
         return data
 
-    def _text_to_instance(self, data):
-        return 0
+    def _canonical_and_def_context_concatenator(self, dui):
+        canonical =  self.custom_tokenizer_class.tokenize(txt=self.dui2canonical[dui])
+        definition =  self.custom_tokenizer_class.tokenize(txt=self.dui2definition[dui])
+        concatenated = ['[CLS]']
+        concatenated += canonical[:self.config.max_canonical_len]
+        concatenated.append(CANONICAL_AND_DEF_CONNECTTOKEN)
+        concatenated += definition[:self.config.max_def_len]
+        concatenated.append('[SEP]')
 
-def build_dataset_reader(params) -> DatasetReader:
-    return BC5CDRReader(params)
+        return [Token(tokenized_word) for tokenized_word in concatenated]
+
+    @overrides
+    def text_to_instance(self, data=None) -> Instance:
+        context_field = TextField(data['context'], self.token_indexers)
+        fields = {"context": context_field}
+        fields['gold_dui_canonical_and_def_concatenated'] = TextField(data['gold_dui_canonical_and_def_concatenated'],
+                                                                 self.token_indexers)
+        fields['gold_duidx'] = ArrayField(np.array(data['gold_cuidx']))
+        fields['mention_uniq_id'] = ArrayField(np.array(data['mention_uniq_id']))
+
+        return Instance(fields)
+
 
 if __name__ == '__main__':
     config = Biencoder_params()
     params = config.opts
-    build_dataset_reader(params)
+    reader = BC5CDRReader(params)
+    reader._read('train')

@@ -9,6 +9,7 @@ class Biencoder_params:
         parser.add_argument('-dataset', action="store", default="bc5cdr", dest="dataset", type=str)
         parser.add_argument('-dataset_dir', action="store", default="./dataset/", type=str)
         parser.add_argument('-preprocessed_doc_dir', action="store", default="./preprocessed_doc_dir/", type=str)
+        parser.add_argument('-kb_dir', action="store", default="./mesh/", type=str)
 
         parser.add_argument('-cached_instance', action='store', default=False, type=strtobool)
         parser.add_argument('-lr', action="store", default=1e-5, type=float)
@@ -34,9 +35,7 @@ class Biencoder_params:
         # For deciding limits of maximum token length
         parser.add_argument('-max_context_len', action="store", default=80, type=int)
         parser.add_argument('-max_mention_len', action="store", default=12, type=int)
-        parser.add_argument('-max_left_context_len', action="store", default=35, type=int)
-        parser.add_argument('-max_right_context_len', action="store", default=35, type=int)
-        parser.add_argument('-max_canonical_len', action="store", default=12, type=int)
+        parser.add_argument('-max_canonical_len', action="store", default=16, type=int)
         parser.add_argument('-max_def_len', action="store", default=48, type=int)
 
         # Filepaths for fixed data
@@ -60,22 +59,8 @@ class Biencoder_params:
             print(arg, getattr(self.opts, arg))
         print('===PARAMETERS END===\n')
 
-        # Enforced params
-        self.allen_lazyloader()
-        self.set_maximum_textlenght_foreachdataset()
-
     def get_params(self):
         return self.opts
-
-    def allen_lazyloader(self):
-        if self.opts.dataset in ['st21pv', 'med']:
-            self.opts.allen_lazyload = True
-
-    def set_maximum_textlenght_foreachdataset(self):
-        if self.opts.dataset in ['st21pv', 'med']:
-            self.opts.max_left_context_len = 30
-            self.opts.max_right_context_len = 30
-            self.opts.max_def_len = 40
 
     def dump_params(self, experiment_dir):
         parameters = vars(self.get_params())

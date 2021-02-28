@@ -4,6 +4,7 @@ import os
 from transformers import AutoTokenizer, AutoModel
 import urllib.request
 from parameteres import Biencoder_params
+from commons import MENTION_START_TOKEN, MENTION_END_TOKEN
 
 class CustomTokenizer:
     def __init__(self, config):
@@ -26,7 +27,8 @@ class CustomTokenizer:
         huggingface_name, do_lower_case = self.huggingfacename_returner()
         return {'tokens': PretrainedTransformerIndexer(
             model_name=huggingface_name,
-            do_lowercase=do_lower_case)
+            # do_lowercase=do_lower_case
+        )
         }
 
     def bert_tokenizer_returner(self):
@@ -49,14 +51,17 @@ class CustomTokenizer:
             raise NotImplementedError
 
 
-    def tokenizer_custom(self, txt):
+    def tokenize(self, txt):
         target_anchors = ['<target>', '</target>']
         original_tokens = txt.split(' ')
         new_tokens = list()
 
         for token in original_tokens:
             if token in target_anchors:
-                new_tokens.append(token)
+                if token == '<target>':
+                    new_tokens.append(MENTION_START_TOKEN)
+                if token == '</target>':
+                    new_tokens.append(MENTION_END_TOKEN)
                 continue
             else:
                 split_to_subwords = self.bert_tokenizer.tokenize(token)  # token is oneword, split_tokens
