@@ -6,6 +6,7 @@ from allennlp.modules.seq2vec_encoders import Seq2VecEncoder, PytorchSeq2VecWrap
 from allennlp.modules.seq2vec_encoders import BertPooler
 from overrides import overrides
 from allennlp.nn.util import get_text_field_mask
+import pdb
 
 class Pooler_for_cano_and_def(Seq2VecEncoder):
     def __init__(self, args, word_embedder):
@@ -32,7 +33,7 @@ class Pooler_for_cano_and_def(Seq2VecEncoder):
         entity_emb = self.word_embedding_dropout(entity_emb)
         entity_emb = self.bertpooler_sec2vec(entity_emb, mask_sent)
 
-        return entity_emb[:, 0, :] # Drop [CLS] embedding
+        return entity_emb
 
 
 class Pooler_for_mention(Seq2VecEncoder):
@@ -60,7 +61,7 @@ class Pooler_for_mention(Seq2VecEncoder):
         mention_emb = self.word_embedding_dropout(mention_emb)
         mention_emb = self.bertpooler_sec2vec(mention_emb, mask_sent)
 
-        return mention_emb[:, 0, :] # Drop [CLS] embedding
+        return mention_emb
 
     @overrides
     def get_output_dim(self):

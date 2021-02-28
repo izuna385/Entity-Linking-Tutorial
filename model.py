@@ -26,10 +26,9 @@ class Biencoder(Model):
         self.entity_encoder = entity_encoder
 
         self.istrainflag = 1
-        self.cuda_flag = 1
 
     def forward(self, context, gold_dui_canonical_and_def_concatenated, gold_duidx, mention_uniq_id):
-        batch_num = context['tokens'].size(0)
+        batch_num =  context['tokens']['token_ids'].size(0)
         contextualized_mention = self.mention_encoder(context)
         encoded_entites = self.entity_encoder(cano_and_def_concatnated_text=gold_dui_canonical_and_def_concatenated)
 
@@ -43,7 +42,7 @@ class Biencoder(Model):
             assert self.args.searchMethodWithFaiss == 'indexflatl2'
             raise NotImplementedError
 
-        device = torch.get_device(scores) if self.cuda_flag else torch.device('cpu')
+        device = torch.get_device(scores) if torch.cuda.is_available() else torch.device('cpu')
         target = torch.LongTensor(torch.arange(batch_num)).to(device)
         loss = F.cross_entropy(scores, target, reduction="mean")
         output = {'loss': loss}
@@ -54,7 +53,6 @@ class Biencoder(Model):
         else:
             output['gold_duidx'] = gold_duidx
             output['encoded_mentions'] = contextualized_mention
-
         return output
 
     @overrides
@@ -97,7 +95,7 @@ class WrappedModel_for_entityencoding(Model):
 
     def forward(self, dui_idx, cano_and_def_concatenated):
         encoded_entites = self.entity_encoder(cano_and_def_concatnated_text=cano_and_def_concatenated)
-        output = {'dui_idx': cui_idx, 'emb_of_entities_encoded': encoded_entites}
+        output = {'dui_idx': dui_idx, 'emb_of_entities_encoded': encoded_entites}
 
         return output
 

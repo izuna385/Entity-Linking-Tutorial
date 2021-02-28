@@ -43,9 +43,11 @@ class BC5CDRReader(DatasetReader):
         :param train_dev_test_flag: 'train', 'dev', 'test'
         :return:
         '''
-        mention_ids = list()
+        mention_ids, instances = list(), list()
         if train_dev_test_flag == 'train':
             mention_ids += self.train_mention_ids
+            # Because Iterator(shuffle=True) has bug, we forcefully shuffle train dataset here.
+            random.shuffle(mention_ids)
         elif train_dev_test_flag == 'dev':
             mention_ids += self.dev_mention_ids
         elif train_dev_test_flag == 'test':
@@ -54,13 +56,19 @@ class BC5CDRReader(DatasetReader):
             mention_ids += self.train_mention_ids
             mention_ids += self.dev_mention_ids
 
+        if self.config.debug:
+            mention_ids = mention_ids[:50]
+
         for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
             try:
                 data = self._one_line_parser(mention_uniq_id=mention_uniq_id)
-                yield self.text_to_instance(data=data)
+                instances.append(self.text_to_instance(data=data))
+                # yield self.text_to_instance(data=data)
             except:
                 print(mention_uniq_id, self.id2mention[mention_uniq_id])
                 print('Warning. This CUI is not included in MeSH.')
+
+        return instances
 
 
     def _train_dev_test_pmid_returner(self):
