@@ -6,9 +6,9 @@ class Biencoder_params:
     def __init__(self):
         parser = argparse.ArgumentParser(description='Entity linker')
         parser.add_argument('-debug', action='store', default=False, type=strtobool)
-        parser.add_argument('-debug_for_entity_encoder', action='store', default=False, type=strtobool)
-        parser.add_argument('-debug_with_onlygoldentities', action='store', default=False, type=strtobool)
-        parser.add_argument('-dataset', action="store", default="med", dest="dataset", type=str)
+        parser.add_argument('-dataset', action="store", default="bc5cdr", dest="dataset", type=str)
+        parser.add_argument('-dataset_dir', action="store", default="./dataset/", type=str)
+        parser.add_argument('-preprocessed_doc_dir', action="store", default="./preprocessed_doc_dir/", type=str)
 
         parser.add_argument('-cached_instance', action='store', default=False, type=strtobool)
         parser.add_argument('-lr', action="store", default=1e-5, type=float)
@@ -18,8 +18,6 @@ class Biencoder_params:
         parser.add_argument('-epsilon', action="store", default=1e-8, type=float)
         parser.add_argument('-amsgrad', action='store', default=False, type=strtobool)
         parser.add_argument('-word_embedding_dropout', action="store", default=0.1, type=float)
-        parser.add_argument('-scalingMSEfactor', action="store", default=1.0, type=float)
-        parser.add_argument('-save_model', action="store", default=1, type=int)
         parser.add_argument('-cuda_devices', action="store", default='0', type=str)
 
         parser.add_argument('-num_epochs', action="store", default=30, type=int)
@@ -54,7 +52,6 @@ class Biencoder_params:
         parser.add_argument('-model_for_training', action="store", default='blink', type=str) # [kgann, biencoder]
 
         # For BLINKBiencoder
-        parser.add_argument('-cand_num_before_sort_candidates_forBLINKbiencoder', action="store", default=500, type=int)
         parser.add_argument('-searchMethodWithFaiss', action='store', default='indexflatip', type=str)
 
         self.opts = parser.parse_args(sys.argv[1:])
