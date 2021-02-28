@@ -66,11 +66,9 @@ class BC5CDRReader(DatasetReader):
         elif train_dev_test_flag == 'test':
             mention_ids += self.test_mention_id
 
-        # for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
-        #     if mention_uniq_id in self.ignored_mention_idxs:
-        #         continue
-        #     data = self.one_line_parser(line=self.id2line[mention_uniq_id], mention_uniq_id=mention_uniq_id)
-        #     yield self.text_to_instance(data=data)
+        for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
+            data = self._one_line_parser(mention_uniq_id=mention_uniq_id)
+            yield self._text_to_instance(data=data)
         #
         # with open(file_path, "r") as lines:
         #     for line in lines:
@@ -159,6 +157,23 @@ class BC5CDRReader(DatasetReader):
         mentions = parsed['lines']
 
         return mentions
+
+    def _one_line_parser(self, mention_uniq_id):
+        line = self.id2mention[mention_uniq_id]
+        gold_dui, _, gold_surface_mention, target_anchor_included_sentence = line.split('\t')
+        tokenized_context_including_target_anchors = self._mention_and_context_tokenizer(
+            txt=target_anchor_included_sentence)
+        tokenized_context_including_target_anchors = [Token(split_token) for split_token in
+                                                      tokenized_context_including_target_anchors]
+        data = {'context': tokenized_context_including_target_anchors}
+        data['gold_duidx'] = int(self.dui2idx[gold_dui])
+        data['mention_uniq_id'] = int(mention_uniq_id)
+        data['gold_cui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
+
+        return data
+
+    def _text_to_instance(self, data):
+        return 0
 
 def build_dataset_reader(params) -> DatasetReader:
     return BC5CDRReader(params)

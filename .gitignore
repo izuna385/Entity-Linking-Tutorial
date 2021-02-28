@@ -6,3 +6,5 @@ mesh/mesh_2020.jsonl
 ./preprocessed_doc_dir/*
 ./movie_review/*
 ./mesh/
+./vocab_file/*
+./biobert/*
