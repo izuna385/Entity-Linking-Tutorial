@@ -20,9 +20,9 @@ class Biencoder_params:
         parser.add_argument('-amsgrad', action='store', default=False, type=strtobool)
         parser.add_argument('-word_embedding_dropout', action="store", default=0.1, type=float)
         parser.add_argument('-cuda_devices', action="store", default='0', type=str)
-        parser.add_argument('-scoring_function_for_model', action="store", default='cossim', type=str)
+        parser.add_argument('-scoring_function_for_model', action="store", default='indexflatip', type=str)
 
-        parser.add_argument('-num_epochs', action="store", default=10, type=int)
+        parser.add_argument('-num_epochs', action="store", default=30, type=int)
         parser.add_argument('-batch_size_for_train', action="store", default=16, type=int)
         parser.add_argument('-batch_size_for_eval', action="store", default=16, type=int)
         parser.add_argument('-hard_negatives_num', action="store", default=10, type=int)
@@ -34,9 +34,9 @@ class Biencoder_params:
         parser.add_argument('-bert_name', action='store', default='bert-base-uncased', type=str)
 
         # For deciding limits of maximum token length
-        parser.add_argument('-max_context_len', action="store", default=80, type=int)
+        parser.add_argument('-max_context_len', action="store", default=60, type=int)
         parser.add_argument('-max_mention_len', action="store", default=12, type=int)
-        parser.add_argument('-max_canonical_len', action="store", default=16, type=int)
+        parser.add_argument('-max_canonical_len', action="store", default=12, type=int)
         parser.add_argument('-max_def_len', action="store", default=48, type=int)
 
         # Filepaths for fixed data

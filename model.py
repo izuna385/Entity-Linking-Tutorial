@@ -29,6 +29,7 @@ class Biencoder(Model):
 
     def forward(self, context, gold_dui_canonical_and_def_concatenated, gold_duidx, mention_uniq_id):
         batch_num =  context['tokens']['token_ids'].size(0)
+        device = torch.get_device(context['tokens']['token_ids']) if torch.cuda.is_available() else torch.device('cpu')
         contextualized_mention = self.mention_encoder(context)
         encoded_entites = self.entity_encoder(cano_and_def_concatnated_text=gold_dui_canonical_and_def_concatenated)
 
@@ -42,9 +43,9 @@ class Biencoder(Model):
             assert self.args.searchMethodWithFaiss == 'indexflatl2'
             raise NotImplementedError
 
-        device = torch.get_device(scores) if torch.cuda.is_available() else torch.device('cpu')
         target = torch.LongTensor(torch.arange(batch_num)).to(device)
-        loss = F.cross_entropy(scores, target, reduction="mean")
+        # loss = F.cross_entropy(scores, target, reduction="mean")
+        loss = self.BCEWloss(scores, torch.eye(batch_num).to(device))
         output = {'loss': loss}
 
         if self.istrainflag:

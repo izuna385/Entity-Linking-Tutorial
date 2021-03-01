@@ -11,9 +11,8 @@ if __name__ == '__main__':
     reader = BC5CDRReader(params)
 
     # Loading Datasets
-    train, dev, test, train_and_dev = reader._read('train'), reader._read('dev'), reader._read('test'), \
-                                      reader._read('train_and_dev')
-
+    train, dev, test = reader._read('train'), reader._read('dev'), reader._read('test')
+    train_and_dev = train + dev
     vocab = build_vocab(train_and_dev)
 
     train_loader, dev_loader = build_data_loaders(params, train, dev)

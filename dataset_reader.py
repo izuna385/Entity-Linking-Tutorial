@@ -57,7 +57,7 @@ class BC5CDRReader(DatasetReader):
             mention_ids += self.dev_mention_ids
 
         if self.config.debug:
-            mention_ids = mention_ids[:50]
+            mention_ids = mention_ids[:200]
 
         for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
             try:
@@ -65,8 +65,9 @@ class BC5CDRReader(DatasetReader):
                 instances.append(self.text_to_instance(data=data))
                 # yield self.text_to_instance(data=data)
             except:
-                print(mention_uniq_id, self.id2mention[mention_uniq_id])
-                print('Warning. This CUI is not included in MeSH.')
+                continue
+                # print(mention_uniq_id, self.id2mention[mention_uniq_id])
+                # print('Warning. This CUI is not included in MeSH.')
 
         return instances
 
