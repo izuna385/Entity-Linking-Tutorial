@@ -25,7 +25,7 @@ def build_data_loaders(config,
     train_data: List[Instance],
     dev_data: List[Instance],
 ) -> Tuple[DataLoader, DataLoader]:
-    train_loader = SimpleDataLoader(train_data, config.batch_size_for_train, shuffle=False)
+    train_loader = SimpleDataLoader(train_data, config.batch_size_for_train, shuffle=True)
     dev_loader = SimpleDataLoader(dev_data, config.batch_size_for_eval, shuffle=False)
 
     return train_loader, dev_loader
