@@ -37,7 +37,7 @@ def build_trainer(
     dev_loader: DataLoader,
 ) -> Trainer:
     parameters = [(n, p) for n, p in model.named_parameters() if p.requires_grad]
-    optimizer = AdamOptimizer(parameters, lr=config.lr)  # type: ignore
+    optimizer = AdamOptimizer(parameters, lr=config.lr)
     model.cuda()
     trainer = GradientDescentTrainer(
         model=model,

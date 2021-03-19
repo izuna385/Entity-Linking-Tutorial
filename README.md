@@ -1,10 +1,2 @@
 # Entity-Linking-Tutorial
-
-## Build Environment
-```
-$ docker build -t el_tutorial .
-$ docker run -itd el_tutorial /bin/bash
-
-# Under Container
-$ python3 main.py
-```
+https://qiita.com/izuna385/items/c2918874fbb564acf1e0
