@@ -23,7 +23,7 @@ class Biencoder_params:
         parser.add_argument('-cuda_devices', action="store", default='0', type=str)
         parser.add_argument('-scoring_function_for_model', action="store", default='indexflatip', type=str)
 
-        parser.add_argument('-num_epochs', action="store", default=3, type=int)
+        parser.add_argument('-num_epochs', action="store", default=20, type=int)
         parser.add_argument('-batch_size_for_train', action="store", default=16, type=int)
         parser.add_argument('-batch_size_for_eval', action="store", default=16, type=int)
 
