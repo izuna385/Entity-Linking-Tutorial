@@ -13,7 +13,7 @@ class Biencoder_params:
         parser.add_argument('-kb_dir', action="store", default="./mesh/", type=str)
 
         parser.add_argument('-cached_instance', action='store', default=False, type=strtobool)
-        parser.add_argument('-lr', action="store", default=1e-6, type=float)
+        parser.add_argument('-lr', action="store", default=1e-5, type=float)
         parser.add_argument('-weight_decay', action="store", default=0, type=float)
         parser.add_argument('-beta1', action="store", default=0.9, type=float)
         parser.add_argument('-beta2', action="store", default=0.999, type=float)
