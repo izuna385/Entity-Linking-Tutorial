@@ -65,9 +65,9 @@ class BC5CDRReader(DatasetReader):
                 instances.append(self.text_to_instance(data=data))
                 # yield self.text_to_instance(data=data)
             except:
+                print(mention_uniq_id, self.id2mention[mention_uniq_id])
+                print('Warning. This CUI is not included in MeSH.')
                 continue
-                # print(mention_uniq_id, self.id2mention[mention_uniq_id])
-                # print('Warning. This CUI is not included in MeSH.')
 
         return instances
 

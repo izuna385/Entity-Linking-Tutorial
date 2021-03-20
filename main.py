@@ -12,8 +12,8 @@ if __name__ == '__main__':
 
     # Loading Datasets
     train, dev, test = reader._read('train'), reader._read('dev'), reader._read('test')
-    train_and_dev = train + dev
-    vocab = build_vocab(train_and_dev)
+    vocab = build_vocab(train)
+    vocab.extend_from_instances(dev)
 
     train_loader, dev_loader = build_data_loaders(params, train, dev)
     train_loader.index_with(vocab)
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     _, __, embedder = emb_returner(config=params)
     mention_encoder, entity_encoder = Pooler_for_mention(params, embedder), Pooler_for_cano_and_def(params, embedder)
 
-    model = Biencoder(params, mention_encoder,entity_encoder, vocab)
+    model = Biencoder(params, mention_encoder, entity_encoder, vocab)
 
     trainer = build_trainer(params, model, train_loader, dev_loader)
     trainer.train()
