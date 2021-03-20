@@ -1,5 +1,6 @@
 # Entity-Linking-Tutorial
 * Tutorial for Bi-encoder based Entity Linking
+
 ![biencoder](./docs/candidate_biencoder.png)
 
 # Environment Setup
@@ -13,8 +14,15 @@ $ pip install -r requirements.txt
 
 * Third, run `python3 preprocess_mesh.py`
 
+# Model and Scoring
+![scoring](./docs/scoring.png)
+* Derived from [[Logeswaran et al., '19]](https://arxiv.org/abs/1906.07348)
+
 # Experiment and Evaluation
-`python3 main.py`
+`$ python3 main.py`
+
+# Parameters
+WIP
 
 # Docs for English
 WIP
