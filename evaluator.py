@@ -38,16 +38,16 @@ class BiencoderEvaluator(Model):
         if self.args.scoring_function_for_model == 'cossim':
             contextualized_mention_forcossim = normalize(contextualized_mention, dim=1)
             encoded_entites_forcossim = normalize(encoded_entites, dim=2)
-            scores = torch.bmm(encoded_entites_forcossim.unsqueeze(2), contextualized_mention_forcossim.view(batch_num, -1, 1)).squeeze()
+            scores = torch.bmm(encoded_entites_forcossim, contextualized_mention_forcossim.view(batch_num, -1, 1)).squeeze()
         elif self.args.scoring_function_for_model == 'indexflatip':
             scores = torch.bmm(encoded_entites, contextualized_mention.view(batch_num, -1, 1)).squeeze()
         else:
             assert self.args.searchMethodWithFaiss == 'indexflatl2'
             raise NotImplementedError
 
-        loss =  self.BCEWloss(scores, gold_location_in_candidates.squeeze(1).float())
+        loss = self.BCEWloss(scores, gold_location_in_candidates.view(batch_num, -1).float())
         output = {'loss': loss}
-        self.accuracy(scores, torch.argmax(gold_location_in_candidates.squeeze(1), dim=1))
+        self.accuracy(scores, torch.argmax(gold_location_in_candidates.view(batch_num, -1), dim=1))
 
         return output
 
