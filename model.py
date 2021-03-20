@@ -9,7 +9,6 @@ from overrides import overrides
 from allennlp.training.metrics import CategoricalAccuracy, BooleanAccuracy
 from torch.nn.functional import normalize
 import torch.nn.functional as F
-import copy
 import pdb
 
 class Biencoder(Model):
@@ -61,46 +60,6 @@ class Biencoder(Model):
     @overrides
     def get_metrics(self, reset: bool = False):
         return {"accuracy": self.accuracy.get_metric(reset)}
-
-    def return_entity_encoder(self):
-        return self.entity_encoder
-
-    def switch2eval(self):
-        self.istrainflag = copy.copy(0)
-
-    def calc_L2distance(self, h, t):
-        diff = h - t
-        return torch.norm(diff, dim=2)  # batch * cands
-
-class BLINKBiencoder_OnlyforEncodingMentions(Model):
-    def __init__(self, args,
-                 mention_encoder: Seq2VecEncoder,
-                 vocab):
-        super().__init__(vocab)
-        self.args = args
-        self.mention_encoder = mention_encoder
-
-    def forward(self, context, gold_cui_cano_and_def_concatenated, gold_cuidx, mention_uniq_id):
-        contextualized_mention = self.mention_encoder(context)
-        output = {'mention_uniq_id': mention_uniq_id,
-                  'gold_duidx': gold_cuidx,
-                  'contextualized_mention': contextualized_mention}
-
-        return output
-
-class WrappedModel_for_entityencoding(Model):
-    def __init__(self, args,
-                 entity_encoder,
-                 vocab):
-        super().__init__(vocab)
-        self.args = args
-        self.entity_encoder = entity_encoder
-
-    def forward(self, dui_idx, cano_and_def_concatenated):
-        encoded_entites = self.entity_encoder(cano_and_def_concatnated_text=cano_and_def_concatenated)
-        output = {'dui_idx': dui_idx, 'emb_of_entities_encoded': encoded_entites}
-
-        return output
 
     def return_entity_encoder(self):
         return self.entity_encoder
