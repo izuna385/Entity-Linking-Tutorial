@@ -47,7 +47,7 @@ def build_trainer(
         data_loader=train_loader,
         validation_data_loader=dev_loader,
         num_epochs=config.num_epochs,
-        patience=config.patience
+        patience=config.patience,
         optimizer=optimizer,
         cuda_device=0 if torch.cuda.is_available() else -1
     )
