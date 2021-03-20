@@ -34,22 +34,19 @@ class Biencoder(Model):
         encoded_entites = self.entity_encoder(cano_and_def_concatnated_text=gold_dui_canonical_and_def_concatenated)
 
         if self.args.scoring_function_for_model == 'cossim':
-            contextualized_mention_forcossim = normalize(contextualized_mention, dim=1)
-            encoded_entites_forcossim = normalize(encoded_entites, dim=1)
-            scores = contextualized_mention_forcossim.mm(encoded_entites_forcossim.t())
-        elif self.args.scoring_function_for_model == 'indexflatip':
-            scores = contextualized_mention.mm(encoded_entites.t())
-        else:
-            assert self.args.searchMethodWithFaiss == 'indexflatl2'
-            raise NotImplementedError
+            contextualized_mention = normalize(contextualized_mention, dim=1)
+            encoded_entites = normalize(encoded_entites, dim=1)
 
-        target = torch.LongTensor(torch.arange(batch_num)).to(device)
-        # loss = F.cross_entropy(scores, target, reduction="mean")
-        loss = self.BCEWloss(scores, torch.eye(batch_num).to(device))
+        encoded_entites = encoded_entites.squeeze(1)
+        dot_product = torch.matmul(contextualized_mention, encoded_entites.t())  # [bs, bs]
+        mask = torch.eye(batch_num).to(device)
+        loss = F.log_softmax(dot_product, dim=-1) * mask
+        loss = (-loss.sum(dim=1)).mean()
+
         output = {'loss': loss}
         if self.istrainflag:
             golds = torch.eye(batch_num).to(device)
-            self.accuracy(scores, torch.argmax(golds, dim=1))
+            self.accuracy(dot_product, torch.argmax(golds, dim=1))
 
         else:
             output['gold_duidx'] = gold_duidx

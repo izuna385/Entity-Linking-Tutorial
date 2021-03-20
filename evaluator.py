@@ -1,10 +1,3 @@
-import pdb
-from allennlp.nn import util as nn_util
-from tqdm import tqdm
-import torch
-from torch.nn.functional import normalize
-import numpy as np
-import math, json
 
 import torch
 import torch.nn as nn
@@ -13,7 +6,6 @@ from allennlp.models import Model
 from overrides import overrides
 from allennlp.training.metrics import CategoricalAccuracy, BooleanAccuracy
 from torch.nn.functional import normalize
-import torch.nn.functional as F
 
 class BiencoderEvaluator(Model):
     def __init__(self, args,

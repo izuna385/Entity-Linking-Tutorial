@@ -21,9 +21,9 @@ class Biencoder_params:
         parser.add_argument('-amsgrad', action='store', default=False, type=strtobool)
         parser.add_argument('-word_embedding_dropout', action="store", default=0.1, type=float)
         parser.add_argument('-cuda_devices', action="store", default='0', type=str)
-        parser.add_argument('-scoring_function_for_model', action="store", default='cossim', type=str)
+        parser.add_argument('-scoring_function_for_model', action="store", default='indexflatip', type=str)
 
-        parser.add_argument('-num_epochs', action="store", default=5, type=int)
+        parser.add_argument('-num_epochs', action="store", default=3, type=int)
         parser.add_argument('-batch_size_for_train', action="store", default=16, type=int)
         parser.add_argument('-batch_size_for_eval', action="store", default=16, type=int)
 
@@ -37,9 +37,6 @@ class Biencoder_params:
 
         # train_kg_or_biencoder
         parser.add_argument('-model_for_training', action="store", default='blink', type=str) # [kgann, biencoder]
-
-        # For BLINKBiencoder
-        parser.add_argument('-searchMethodWithFaiss', action='store', default='cossim', type=str)
 
         parser.add_argument('-candidates_dataset', action='store', default='./candidates.pkl', type=str)
         parser.add_argument('-max_candidates_num', action='store', default=5, type=int)
