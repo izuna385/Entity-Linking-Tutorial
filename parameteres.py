@@ -6,6 +6,7 @@ class Biencoder_params:
     def __init__(self):
         parser = argparse.ArgumentParser(description='Entity linker')
         parser.add_argument('-debug', action='store', default=False, type=strtobool)
+        parser.add_argument('-debug_data_num', action='store', default=300, type=int)
         parser.add_argument('-dataset', action="store", default="bc5cdr", dest="dataset", type=str)
         parser.add_argument('-dataset_dir', action="store", default="./dataset/", type=str)
         parser.add_argument('-preprocessed_doc_dir', action="store", default="./preprocessed_doc_dir/", type=str)

@@ -59,18 +59,22 @@ class BC5CDRReader(DatasetReader):
             mention_ids += self.dev_mention_ids
 
         if self.config.debug:
-            mention_ids = mention_ids[:32]
+            mention_ids = mention_ids[:self.config.debug_data_num]
 
         for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
-            try:
-                data = self._one_line_parser(mention_uniq_id=mention_uniq_id,
-                                             train_dev_test_flag=train_dev_test_flag)
-                instances.append(self.text_to_instance(data=data))
-                # yield self.text_to_instance(data=data)
-            except:
+            # try:
+            data = self._one_line_parser(mention_uniq_id=mention_uniq_id,
+                                         train_dev_test_flag=train_dev_test_flag)
+            if data['gold_duidx'] == -1:
                 print(mention_uniq_id, self.id2mention[mention_uniq_id])
-                print('Warning. This CUI is not included in MeSH.')
+                print('Warning. This CUI is not included in MeSH Canonical and Definition Dictionary.')
                 continue
+            instances.append(self.text_to_instance(data=data))
+                # yield self.text_to_instance(data=data)
+            # except:
+            #     print(mention_uniq_id, self.id2mention[mention_uniq_id])
+            #     print('Warning. This CUI is not included in MeSH.')
+            #     continue
 
         return instances
 
@@ -186,31 +190,37 @@ class BC5CDRReader(DatasetReader):
             data = {'context': tokenized_context_including_target_anchors}
 
             data['mention_uniq_id'] = int(mention_uniq_id)
-            data['gold_duidx'] = int(self.dui2idx[gold_dui])
-            data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
+            data['gold_duidx'] = int(self.dui2idx[gold_dui]) if gold_dui in self.dui2idx and gold_dui in self.dui2canonical else -1
+            if gold_dui in self.dui2canonical:
+                data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
         else:
             assert train_dev_test_flag == 'test'
             line = self.id2mention[mention_uniq_id]
             gold_dui, _, surface_mention, target_anchor_included_sentence = line.split('\t')
+
             candidate_duis_idx = [self.dui2idx[dui] for dui in self.candidate_generator.mention2candidate_duis[surface_mention]
-                              if dui in self.dui2idx][:self.config.max_candidates_num]
-            while len(candidate_duis_idx) <= self.config.max_candidates_num:
+                              if dui in self.dui2idx and dui in self.dui2canonical][:self.config.max_candidates_num]
+            while len(candidate_duis_idx) < self.config.max_candidates_num:
                 random_choiced_dui = random.choice([dui for dui in self.dui2idx.keys()])
                 if self.dui2idx[random_choiced_dui] not in candidate_duis_idx:
                     candidate_duis_idx.append(self.dui2idx[random_choiced_dui])
             tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
                 txt=target_anchor_included_sentence)
             tokenized_context_including_target_anchors = [Token(split_token) for split_token in
-                                                          tokenized_context_including_target_anchors]
+                                                          tokenized_context_including_target_anchors][:self.config.max_context_len]
             data = {'context': tokenized_context_including_target_anchors}
             data['candidate_duis_idx'] = candidate_duis_idx
+            data['gold_duidx'] = int(self.dui2idx[gold_dui]) if gold_dui in self.dui2idx else -1
 
             gold_location_in_candidates = [0 for _ in range(self.config.max_candidates_num)]
-            for idx, cand_idx in enumerate(candidate_duis_idx):
-                if cand_idx == self.dui2idx[gold_dui]:
-                    gold_location_in_candidates[idx] += 1
+
+            if gold_dui in self.dui2idx:
+                for idx, cand_idx in enumerate(candidate_duis_idx):
+                    if cand_idx == self.dui2idx[gold_dui]:
+                        gold_location_in_candidates[idx] += 1
 
             data['gold_location_in_candidates'] = gold_location_in_candidates
+            data['mention_uniq_id'] = int(mention_uniq_id)
 
         return data
 
@@ -229,8 +239,7 @@ class BC5CDRReader(DatasetReader):
     def text_to_instance(self, data=None) -> Instance:
         context_field = TextField(data['context'], self.token_indexers)
         fields = {"context": context_field}
-        fields['gold_dui_canonical_and_def_concatenated'] = TextField(data['gold_dui_canonical_and_def_concatenated'],
-                                                                 self.token_indexers)
+
         fields['gold_duidx'] = ArrayField(np.array(data['gold_duidx']))
         fields['mention_uniq_id'] = ArrayField(np.array(data['mention_uniq_id']))
 
@@ -240,8 +249,12 @@ class BC5CDRReader(DatasetReader):
             fields['candidates_canonical_and_def_concatenated'] = ListField(candidates_canonical_and_def_concatenated)
             fields['gold_location_in_candidates'] = ArrayField(np.array([data['gold_location_in_candidates']],
                                                                         dtype='int16'))
-        else:
+            fields['gold_dui_canonical_and_def_concatenated'] = MetadataField(0)
+        else: # train
             fields['candidates_canonical_and_def_concatenated'] = MetadataField(0)
             fields['gold_location_in_candidates'] = MetadataField(0)
+            fields['gold_dui_canonical_and_def_concatenated'] = TextField(
+                data['gold_dui_canonical_and_def_concatenated'],
+                self.token_indexers)
 
         return Instance(fields)

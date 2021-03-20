@@ -29,7 +29,7 @@ class Biencoder(Model):
 
     def forward(self, context, gold_dui_canonical_and_def_concatenated, gold_duidx, mention_uniq_id,
                 candidates_canonical_and_def_concatenated, gold_location_in_candidates):
-        batch_num =  context['tokens']['token_ids'].size(0)
+        batch_num = context['tokens']['token_ids'].size(0)
         device = torch.get_device(context['tokens']['token_ids']) if torch.cuda.is_available() else torch.device('cpu')
         contextualized_mention = self.mention_encoder(context)
         encoded_entites = self.entity_encoder(cano_and_def_concatnated_text=gold_dui_canonical_and_def_concatenated)
@@ -48,13 +48,14 @@ class Biencoder(Model):
         # loss = F.cross_entropy(scores, target, reduction="mean")
         loss = self.BCEWloss(scores, torch.eye(batch_num).to(device))
         output = {'loss': loss}
-
         if self.istrainflag:
             golds = torch.eye(batch_num).to(device)
             self.accuracy(scores, torch.argmax(golds, dim=1))
+
         else:
             output['gold_duidx'] = gold_duidx
             output['encoded_mentions'] = contextualized_mention
+
         return output
 
     @overrides

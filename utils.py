@@ -24,11 +24,13 @@ def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
 def build_data_loaders(config,
     train_data: List[Instance],
     dev_data: List[Instance],
-) -> Tuple[DataLoader, DataLoader]:
-    train_loader = SimpleDataLoader(train_data, config.batch_size_for_train, shuffle=False)
-    dev_loader = SimpleDataLoader(dev_data, config.batch_size_for_eval, shuffle=False)
+    test_data: List[Instance]) -> Tuple[DataLoader, DataLoader, DataLoader]:
 
-    return train_loader, dev_loader
+    train_loader = SimpleDataLoader(train_data, config.batch_size_for_train, shuffle=True)
+    dev_loader = SimpleDataLoader(dev_data, config.batch_size_for_eval, shuffle=False)
+    test_loader = SimpleDataLoader(test_data, config.batch_size_for_eval, shuffle=False)
+
+    return train_loader, dev_loader, test_loader
 
 def build_trainer(
     config,
