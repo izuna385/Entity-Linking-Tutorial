@@ -6,7 +6,6 @@ from allennlp.modules.seq2vec_encoders import Seq2VecEncoder, PytorchSeq2VecWrap
 from allennlp.modules.seq2vec_encoders import BertPooler
 from overrides import overrides
 from allennlp.nn.util import get_text_field_mask
-import pdb
 
 class Pooler_for_cano_and_def(Seq2VecEncoder):
     def __init__(self, args, word_embedder):

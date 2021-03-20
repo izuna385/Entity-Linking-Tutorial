@@ -17,6 +17,7 @@ from tqdm import tqdm
 import json
 from tokenizer import CustomTokenizer
 import numpy as np
+from candidate_generator import CandidateGeneratorForTestDataset
 
 class BC5CDRReader(DatasetReader):
     def __init__(
@@ -36,6 +37,7 @@ class BC5CDRReader(DatasetReader):
 
         # kb loading
         self.dui2idx, self.idx2dui, self.dui2canonical, self.dui2definition = self._kb_loader()
+        self.candidate_generator = CandidateGeneratorForTestDataset(config=config)
 
     @overrides
     def _read(self, train_dev_test_flag: str) -> list:
@@ -57,11 +59,12 @@ class BC5CDRReader(DatasetReader):
             mention_ids += self.dev_mention_ids
 
         if self.config.debug:
-            mention_ids = mention_ids[:200]
+            mention_ids = mention_ids[:32]
 
         for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
             try:
-                data = self._one_line_parser(mention_uniq_id=mention_uniq_id)
+                data = self._one_line_parser(mention_uniq_id=mention_uniq_id,
+                                             train_dev_test_flag=train_dev_test_flag)
                 instances.append(self.text_to_instance(data=data))
                 # yield self.text_to_instance(data=data)
             except:
@@ -172,18 +175,35 @@ class BC5CDRReader(DatasetReader):
 
         return dui2idx, idx2dui, dui2canonical, dui2definition
 
-    def _one_line_parser(self, mention_uniq_id):
-        line = self.id2mention[mention_uniq_id]
-        gold_dui, _, gold_surface_mention, target_anchor_included_sentence = line.split('\t')
-        tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
-            txt=target_anchor_included_sentence)
-        tokenized_context_including_target_anchors = [Token(split_token) for split_token in
-                                                      tokenized_context_including_target_anchors]
-        data = {'context': tokenized_context_including_target_anchors}
+    def _one_line_parser(self, mention_uniq_id, train_dev_test_flag='train'):
+        if train_dev_test_flag in ['train', 'dev']:
+            line = self.id2mention[mention_uniq_id]
+            gold_dui, _, gold_surface_mention, target_anchor_included_sentence = line.split('\t')
+            tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
+                txt=target_anchor_included_sentence)
+            tokenized_context_including_target_anchors = [Token(split_token) for split_token in
+                                                          tokenized_context_including_target_anchors]
+            data = {'context': tokenized_context_including_target_anchors}
 
-        data['mention_uniq_id'] = int(mention_uniq_id)
-        data['gold_duidx'] = int(self.dui2idx[gold_dui])
-        data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
+            data['mention_uniq_id'] = int(mention_uniq_id)
+            data['gold_duidx'] = int(self.dui2idx[gold_dui])
+            data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
+        else:
+            assert train_dev_test_flag == 'test'
+            line = self.id2mention[mention_uniq_id]
+            gold_dui, _, surface_mention, target_anchor_included_sentence = line.split('\t')
+            candidate_duis_idx = [self.dui2idx[dui] for dui in self.candidate_generator.mention2candidate_duis[surface_mention]
+                              if dui in self.dui2idx][:self.config.max_candidates_num]
+            while len(candidate_duis_idx) <= self.config.max_candidates_num:
+                random_choiced_dui = random.choice([dui for dui in self.dui2idx.keys()])
+                if self.dui2idx[random_choiced_dui] not in candidate_duis_idx:
+                    candidate_duis_idx.append(self.dui2idx[random_choiced_dui])
+            tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
+                txt=target_anchor_included_sentence)
+            tokenized_context_including_target_anchors = [Token(split_token) for split_token in
+                                                          tokenized_context_including_target_anchors]
+            data = {'context': tokenized_context_including_target_anchors}
+            data['candidate_duis_idx'] = candidate_duis_idx
 
         return data
 

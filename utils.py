@@ -1,6 +1,6 @@
 from typing import Dict, Iterable, List, Tuple
 from allennlp.modules.token_embedders import PretrainedTransformerEmbedder
-
+import torch
 from allennlp.data import (
     DataLoader,
     DatasetReader,
@@ -25,7 +25,7 @@ def build_data_loaders(config,
     train_data: List[Instance],
     dev_data: List[Instance],
 ) -> Tuple[DataLoader, DataLoader]:
-    train_loader = SimpleDataLoader(train_data, config.batch_size_for_train, shuffle=True)
+    train_loader = SimpleDataLoader(train_data, config.batch_size_for_train, shuffle=False)
     dev_loader = SimpleDataLoader(dev_data, config.batch_size_for_eval, shuffle=False)
 
     return train_loader, dev_loader
@@ -38,15 +38,17 @@ def build_trainer(
 ) -> Trainer:
     parameters = [(n, p) for n, p in model.named_parameters() if p.requires_grad]
     optimizer = AdamOptimizer(parameters, lr=config.lr)
-    model.cuda()
+    if torch.cuda.is_available():
+        model.cuda()
     trainer = GradientDescentTrainer(
         model=model,
         data_loader=train_loader,
         validation_data_loader=dev_loader,
         num_epochs=config.num_epochs,
         optimizer=optimizer,
-        cuda_device=0
+        cuda_device=0 if torch.cuda.is_available() else -1
     )
+
     return trainer
 
 def emb_returner(config):

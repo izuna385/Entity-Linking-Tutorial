@@ -26,3 +26,5 @@ if __name__ == '__main__':
 
     trainer = build_trainer(params, model, train_loader, dev_loader)
     trainer.train()
+
+    model.eval()
