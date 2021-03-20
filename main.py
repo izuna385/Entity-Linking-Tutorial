@@ -3,7 +3,6 @@ from parameteres import Biencoder_params
 from utils import build_vocab, build_data_loaders, emb_returner, build_trainer
 from encoder import Pooler_for_mention, Pooler_for_cano_and_def
 from model import Biencoder
-import pdb
 from allennlp.training.util import evaluate
 import copy
 from evaluator import BiencoderEvaluator
@@ -36,7 +35,6 @@ if __name__ == '__main__':
     test_loader.index_with(model.vocab)
 
     evaluator_model = BiencoderEvaluator(params, mention_encoder, entity_encoder, vocab)
-
     evaluator_model.eval()
     eval_result = evaluate(model=evaluator_model,
                            data_loader=test_loader,
