@@ -27,7 +27,8 @@ class Biencoder(Model):
 
         self.istrainflag = 1
 
-    def forward(self, context, gold_dui_canonical_and_def_concatenated, gold_duidx, mention_uniq_id):
+    def forward(self, context, gold_dui_canonical_and_def_concatenated, gold_duidx, mention_uniq_id,
+                candidates_canonical_and_def_concatenated, gold_location_in_candidates):
         batch_num =  context['tokens']['token_ids'].size(0)
         device = torch.get_device(context['tokens']['token_ids']) if torch.cuda.is_available() else torch.device('cpu')
         contextualized_mention = self.mention_encoder(context)

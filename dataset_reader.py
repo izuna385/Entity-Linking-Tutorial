@@ -205,6 +205,13 @@ class BC5CDRReader(DatasetReader):
             data = {'context': tokenized_context_including_target_anchors}
             data['candidate_duis_idx'] = candidate_duis_idx
 
+            gold_location_in_candidates = [0 for _ in range(self.config.max_candidates_num)]
+            for idx, cand_idx in enumerate(candidate_duis_idx):
+                if cand_idx == self.dui2idx[gold_dui]:
+                    gold_location_in_candidates[idx] += 1
+
+            data['gold_location_in_candidates'] = gold_location_in_candidates
+
         return data
 
     def _canonical_and_def_context_concatenator(self, dui):
@@ -226,5 +233,15 @@ class BC5CDRReader(DatasetReader):
                                                                  self.token_indexers)
         fields['gold_duidx'] = ArrayField(np.array(data['gold_duidx']))
         fields['mention_uniq_id'] = ArrayField(np.array(data['mention_uniq_id']))
+
+        if data['mention_uniq_id'] in self.test_mention_ids:
+            candidates_canonical_and_def_concatenated = [TextField(self._canonical_and_def_context_concatenator(
+                dui=self.idx2dui[idx]), self.token_indexers) for idx in data['candidate_duis_idx']]
+            fields['candidates_canonical_and_def_concatenated'] = ListField(candidates_canonical_and_def_concatenated)
+            fields['gold_location_in_candidates'] = ArrayField(np.array([data['gold_location_in_candidates']],
+                                                                        dtype='int16'))
+        else:
+            fields['candidates_canonical_and_def_concatenated'] = MetadataField(0)
+            fields['gold_location_in_candidates'] = MetadataField(0)
 
         return Instance(fields)
