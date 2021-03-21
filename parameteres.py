@@ -9,6 +9,7 @@ class Biencoder_params:
         parser.add_argument('-debug_data_num', action='store', default=2000, type=int)
         parser.add_argument('-dataset', action="store", default="bc5cdr", dest="dataset", type=str)
         parser.add_argument('-dataset_dir', action="store", default="./dataset/", type=str)
+        parser.add_argument('-serialization_dir', action="store", default="./serialization_dir/", type=str)
         parser.add_argument('-preprocessed_doc_dir', action="store", default="./preprocessed_doc_dir/", type=str)
         parser.add_argument('-kb_dir', action="store", default="./mesh/", type=str)
 
