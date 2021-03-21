@@ -38,7 +38,7 @@ class BC5CDRReader(DatasetReader):
         # kb loading
         self.dui2idx, self.idx2dui, self.dui2canonical, self.dui2definition = self._kb_loader()
         self.candidate_generator = CandidateGeneratorForTestDataset(config=config)
-        self.surface_candidate_generator_flag = 1
+        self.dev_eval_flag = 0
 
     @overrides
     def _read(self, train_dev_test_flag: str) -> list:
@@ -183,7 +183,7 @@ class BC5CDRReader(DatasetReader):
         return dui2idx, idx2dui, dui2canonical, dui2definition
 
     def _one_line_parser(self, mention_uniq_id, train_dev_test_flag='train'):
-        if train_dev_test_flag in ['train'] or (train_dev_test_flag == 'dev' and self.surface_candidate_generator_flag):
+        if train_dev_test_flag in ['train'] or (train_dev_test_flag == 'dev' and self.dev_eval_flag == 0):
             line = self.id2mention[mention_uniq_id]
             gold_dui, _, gold_surface_mention, target_anchor_included_sentence = line.split('\t')
             tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
@@ -246,14 +246,15 @@ class BC5CDRReader(DatasetReader):
         fields['gold_duidx'] = ArrayField(np.array(data['gold_duidx']))
         fields['mention_uniq_id'] = ArrayField(np.array(data['mention_uniq_id']))
 
-        if data['mention_uniq_id'] in self.test_mention_ids:
+        if data['mention_uniq_id'] in self.test_mention_ids or \
+                (data['mention_uniq_id'] in self.dev_mention_ids and self.dev_eval_flag):
             candidates_canonical_and_def_concatenated = [TextField(self._canonical_and_def_context_concatenator(
                 dui=self.idx2dui[idx]), self.token_indexers) for idx in data['candidate_duis_idx']]
             fields['candidates_canonical_and_def_concatenated'] = ListField(candidates_canonical_and_def_concatenated)
             fields['gold_location_in_candidates'] = ArrayField(np.array([data['gold_location_in_candidates']],
                                                                         dtype='int16'))
             fields['gold_dui_canonical_and_def_concatenated'] = MetadataField(0)
-        else: # train
+        else: # train, or dev-eval under train
             fields['candidates_canonical_and_def_concatenated'] = MetadataField(0)
             fields['gold_location_in_candidates'] = MetadataField(0)
             fields['gold_dui_canonical_and_def_concatenated'] = TextField(
