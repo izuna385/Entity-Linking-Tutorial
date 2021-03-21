@@ -40,7 +40,7 @@ class Biencoder_params:
         parser.add_argument('-model_for_training', action="store", default='blink', type=str) # [kgann, biencoder]
 
         parser.add_argument('-candidates_dataset', action='store', default='./candidates.pkl', type=str)
-        parser.add_argument('-max_candidates_num', action='store', default=5, type=int)
+        parser.add_argument('-max_candidates_num', action='store', default=20, type=int)
 
         self.opts = parser.parse_args(sys.argv[1:])
         print('\n===PARAMETERS===')

@@ -61,20 +61,22 @@ class BC5CDRReader(DatasetReader):
         if self.config.debug:
             mention_ids = mention_ids[:self.config.debug_data_num]
 
+        ignored_mentions_num = 0
         for idx, mention_uniq_id in tqdm(enumerate(mention_ids)):
             # try:
             data = self._one_line_parser(mention_uniq_id=mention_uniq_id,
                                          train_dev_test_flag=train_dev_test_flag)
             if data['gold_duidx'] == -1:
-                print(mention_uniq_id, self.id2mention[mention_uniq_id])
-                print('Warning. This CUI is not included in MeSH Canonical and Definition Dictionary.')
+                # print(mention_uniq_id, self.id2mention[mention_uniq_id])
+                # print('Warning. This CUI is not included in MeSH Canonical and Definition Dictionary.')
+                ignored_mentions_num += 1
                 continue
             instances.append(self.text_to_instance(data=data))
                 # yield self.text_to_instance(data=data)
             # except:
-            #     print(mention_uniq_id, self.id2mention[mention_uniq_id])
-            #     print('Warning. This CUI is not included in MeSH.')
             #     continue
+        print(train_dev_test_flag, 'ignored_mentions:', ignored_mentions_num)
+        print('These mentions are ignored because the latest version\'s MeSH is used for indexing.')
 
         return instances
 
