@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # switch to dev evaluation mode
     reader.dev_eval_flag = copy.copy(1)
     dev = reader._read('dev')
-    dev_loader = build_one_flag_loader(config, dev)
+    dev_loader = build_one_flag_loader(params, dev)
     dev_loader.index_with(vocab)
     test_loader.index_with(model.vocab)
 
