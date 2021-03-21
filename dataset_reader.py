@@ -38,6 +38,7 @@ class BC5CDRReader(DatasetReader):
         # kb loading
         self.dui2idx, self.idx2dui, self.dui2canonical, self.dui2definition = self._kb_loader()
         self.candidate_generator = CandidateGeneratorForTestDataset(config=config)
+        self.surface_candidate_generator_flag = 1
 
     @overrides
     def _read(self, train_dev_test_flag: str) -> list:
@@ -182,7 +183,7 @@ class BC5CDRReader(DatasetReader):
         return dui2idx, idx2dui, dui2canonical, dui2definition
 
     def _one_line_parser(self, mention_uniq_id, train_dev_test_flag='train'):
-        if train_dev_test_flag in ['train', 'dev']:
+        if train_dev_test_flag in ['train'] or (train_dev_test_flag == 'dev' and self.surface_candidate_generator_flag):
             line = self.id2mention[mention_uniq_id]
             gold_dui, _, gold_surface_mention, target_anchor_included_sentence = line.split('\t')
             tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
@@ -196,7 +197,7 @@ class BC5CDRReader(DatasetReader):
             if gold_dui in self.dui2canonical:
                 data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
         else:
-            assert train_dev_test_flag == 'test'
+            assert train_dev_test_flag in ['dev', 'test']
             line = self.id2mention[mention_uniq_id]
             gold_dui, _, surface_mention, target_anchor_included_sentence = line.split('\t')
 

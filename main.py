@@ -5,7 +5,7 @@ from encoder import Pooler_for_mention, Pooler_for_cano_and_def
 from model import Biencoder
 from allennlp.training.util import evaluate
 import copy
-from evaluator import BiencoderEvaluator
+from evaluator import BiencoderSqueezedCandidateEvaluator
 
 if __name__ == '__main__':
     config = Biencoder_params()
@@ -34,10 +34,14 @@ if __name__ == '__main__':
     model.eval()
     test_loader.index_with(model.vocab)
 
-    evaluator_model = BiencoderEvaluator(params, mention_encoder, entity_encoder, vocab)
-    evaluator_model.eval()
-    eval_result = evaluate(model=evaluator_model,
-                           data_loader=test_loader,
-                           cuda_device=0,
-                           batch_weight_key="")
-    print(eval_result)
+    squeezed_evaluator_model = BiencoderSqueezedCandidateEvaluator(params, mention_encoder, entity_encoder, vocab)
+    squeezed_evaluator_model.eval()
+    dev_eval_result = evaluate(model=squeezed_evaluator_model, data_loader=dev_loader, cuda_device=0,
+                               batch_weight_key="")
+    print(dev_eval_result)
+    test_eval_result = evaluate(model=squeezed_evaluator_model, data_loader=test_loader, cuda_device=0,
+                                batch_weight_key="")
+    print(test_eval_result)
+
+    # switch to entire-KB evaluation mode
+    reader.surface_candidate_generator_flag = copy.copy(0)

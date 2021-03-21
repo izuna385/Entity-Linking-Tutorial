@@ -7,7 +7,7 @@ from overrides import overrides
 from allennlp.training.metrics import CategoricalAccuracy, BooleanAccuracy
 from torch.nn.functional import normalize
 
-class BiencoderEvaluator(Model):
+class BiencoderSqueezedCandidateEvaluator(Model):
     def __init__(self, args,
                  mention_encoder: Seq2VecEncoder,
                  entity_encoder: Seq2VecEncoder,
@@ -38,7 +38,8 @@ class BiencoderEvaluator(Model):
             raise NotImplementedError
 
         loss = self.BCEWloss(scores, gold_location_in_candidates.view(batch_num, -1).float())
-        output = {'loss': loss}
+        output = {'loss': loss,
+                  'contextualized_mention': contextualized_mention}
         self.accuracy(scores, torch.argmax(gold_location_in_candidates.view(batch_num, -1), dim=1))
 
         return output
