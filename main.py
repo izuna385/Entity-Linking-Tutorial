@@ -5,7 +5,7 @@ from encoder import Pooler_for_mention, Pooler_for_cano_and_def
 from model import Biencoder
 from allennlp.training.util import evaluate
 import copy
-from evaluator import BiencoderSqueezedCandidateEvaluator
+from models_for_evaluate import BiencoderSqueezedCandidateEvaluator
 
 if __name__ == '__main__':
     config = Biencoder_params()
