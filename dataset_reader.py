@@ -289,19 +289,16 @@ class EntitiesInKBLoader(DatasetReader):
         :param train_dev_test_flag: 'train', 'dev', 'test'
         :return: list of instances
         '''
-        instances = list()
-        for entity_idx, dui in tqdm(enumerate(self.idx2dui.items())):
-            data = self._one_entity_parser(entity_uniq_id=entity_idx)
-            instances.append(self.text_to_instance(data=data))
-
-        return instances
-
+        for entity_unique_id, dui in tqdm(enumerate(self.idx2dui.items())):
+            if self.config.debug and entity_unique_id == 100:
+                break
+            instance = self.text_to_instance(entity_unique_id=entity_unique_id)
+            yield instance
 
     def _one_entity_parser(self, entity_uniq_id: int):
         gold_dui = self.idx2dui[entity_uniq_id]
         data = {}
         data['entity_uniq_id'] = int(entity_uniq_id)
-
         data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(
             dui=gold_dui)
 
@@ -319,7 +316,8 @@ class EntitiesInKBLoader(DatasetReader):
         return [Token(tokenized_word) for tokenized_word in concatenated]
 
     @overrides
-    def text_to_instance(self, data=None) -> Instance:
+    def text_to_instance(self, entity_unique_id=None) -> Instance:
+        data = self._one_entity_parser(entity_uniq_id=entity_unique_id)
         fields = {}
 
         fields['gold_dui_canonical_and_def_concatenated'] = TextField(
@@ -348,3 +346,6 @@ class EntitiesInKBLoader(DatasetReader):
             idx2dui.update({int(idx_str): dui})
 
         return dui2idx, idx2dui, dui2canonical, dui2definition
+
+    def get_entity_ids(self):
+        return [idx for idx in self.idx2dui.keys()]
