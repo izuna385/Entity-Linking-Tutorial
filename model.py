@@ -2,14 +2,13 @@
 Model classes
 '''
 import torch
-import torch.nn as nn
 from allennlp.modules.seq2vec_encoders import Seq2VecEncoder, PytorchSeq2VecWrapper
 from allennlp.models import Model
 from overrides import overrides
 from allennlp.training.metrics import CategoricalAccuracy, BooleanAccuracy
 from torch.nn.functional import normalize
 import torch.nn.functional as F
-import pdb
+
 
 class Biencoder(Model):
     def __init__(self, args,
@@ -20,8 +19,6 @@ class Biencoder(Model):
         self.args = args
         self.mention_encoder = mention_encoder
         self.accuracy = CategoricalAccuracy()
-        self.BCEWloss = nn.BCEWithLogitsLoss()
-        self.mesloss = nn.MSELoss()
         self.entity_encoder = entity_encoder
 
         self.istrainflag = 1

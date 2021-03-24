@@ -1,11 +1,11 @@
 from dataset_reader import BC5CDRReader
 from parameteres import Biencoder_params
-from utils import build_vocab, build_data_loaders, emb_returner, build_trainer
+from utils import build_vocab, build_data_loaders, build_one_flag_loader, emb_returner, build_trainer
 from encoder import Pooler_for_mention, Pooler_for_cano_and_def
 from model import Biencoder
 from allennlp.training.util import evaluate
 import copy
-from evaluator import BiencoderEvaluator
+from models_for_evaluate import BiencoderSqueezedCandidateEvaluator
 
 if __name__ == '__main__':
     config = Biencoder_params()
@@ -32,12 +32,19 @@ if __name__ == '__main__':
     # switch to evaluation model
     model.istrainflag = copy.copy(0)
     model.eval()
+
+    # switch to dev evaluation mode
+    reader.dev_eval_flag = copy.copy(1)
+    dev = reader._read('dev')
+    dev_loader = build_one_flag_loader(params, dev)
+    dev_loader.index_with(vocab)
     test_loader.index_with(model.vocab)
 
-    evaluator_model = BiencoderEvaluator(params, mention_encoder, entity_encoder, vocab)
-    evaluator_model.eval()
-    eval_result = evaluate(model=evaluator_model,
-                           data_loader=test_loader,
-                           cuda_device=0,
-                           batch_weight_key="")
-    print(eval_result)
+    squeezed_evaluator_model = BiencoderSqueezedCandidateEvaluator(params, mention_encoder, entity_encoder, vocab)
+    squeezed_evaluator_model.eval()
+    dev_eval_result = evaluate(model=squeezed_evaluator_model, data_loader=dev_loader, cuda_device=0,
+                               batch_weight_key="")
+    print(dev_eval_result)
+    test_eval_result = evaluate(model=squeezed_evaluator_model, data_loader=test_loader, cuda_device=0,
+                                batch_weight_key="")
+    print(test_eval_result)

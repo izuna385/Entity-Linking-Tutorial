@@ -32,6 +32,12 @@ def build_data_loaders(config,
 
     return train_loader, dev_loader, test_loader
 
+def build_one_flag_loader(config,
+                          data: List[Instance]) -> DataLoader:
+    loader = SimpleDataLoader(data, config.batch_size_for_eval, shuffle=False)
+
+    return loader
+
 def build_trainer(
     config,
     model: Model,

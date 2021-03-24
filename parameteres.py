@@ -6,7 +6,7 @@ class Biencoder_params:
     def __init__(self):
         parser = argparse.ArgumentParser(description='Entity linker')
         parser.add_argument('-debug', action='store', default=False, type=strtobool)
-        parser.add_argument('-debug_data_num', action='store', default=2000, type=int)
+        parser.add_argument('-debug_data_num', action='store', default=200, type=int)
         parser.add_argument('-dataset', action="store", default="bc5cdr", dest="dataset", type=str)
         parser.add_argument('-dataset_dir', action="store", default="./dataset/", type=str)
         parser.add_argument('-serialization_dir', action="store", default="./serialization_dir/", type=str)
@@ -24,7 +24,7 @@ class Biencoder_params:
         parser.add_argument('-cuda_devices', action="store", default='0', type=str)
         parser.add_argument('-scoring_function_for_model', action="store", default='indexflatip', type=str)
 
-        parser.add_argument('-num_epochs', action="store", default=30, type=int)
+        parser.add_argument('-num_epochs', action="store", default=10, type=int)
         parser.add_argument('-patience', action="store", default=10, type=int)
         parser.add_argument('-batch_size_for_train', action="store", default=16, type=int)
         parser.add_argument('-batch_size_for_eval', action="store", default=16, type=int)
@@ -41,7 +41,7 @@ class Biencoder_params:
         parser.add_argument('-model_for_training', action="store", default='blink', type=str) # [kgann, biencoder]
 
         parser.add_argument('-candidates_dataset', action='store', default='./candidates.pkl', type=str)
-        parser.add_argument('-max_candidates_num', action='store', default=20, type=int)
+        parser.add_argument('-max_candidates_num', action='store', default=10, type=int)
 
         self.opts = parser.parse_args(sys.argv[1:])
         print('\n===PARAMETERS===')

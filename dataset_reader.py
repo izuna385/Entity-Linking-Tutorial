@@ -38,6 +38,7 @@ class BC5CDRReader(DatasetReader):
         # kb loading
         self.dui2idx, self.idx2dui, self.dui2canonical, self.dui2definition = self._kb_loader()
         self.candidate_generator = CandidateGeneratorForTestDataset(config=config)
+        self.dev_eval_flag = 0
 
     @overrides
     def _read(self, train_dev_test_flag: str) -> list:
@@ -182,7 +183,7 @@ class BC5CDRReader(DatasetReader):
         return dui2idx, idx2dui, dui2canonical, dui2definition
 
     def _one_line_parser(self, mention_uniq_id, train_dev_test_flag='train'):
-        if train_dev_test_flag in ['train', 'dev']:
+        if train_dev_test_flag in ['train'] or (train_dev_test_flag == 'dev' and self.dev_eval_flag == 0):
             line = self.id2mention[mention_uniq_id]
             gold_dui, _, gold_surface_mention, target_anchor_included_sentence = line.split('\t')
             tokenized_context_including_target_anchors = self.custom_tokenizer_class.tokenize(
@@ -196,7 +197,7 @@ class BC5CDRReader(DatasetReader):
             if gold_dui in self.dui2canonical:
                 data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(dui=gold_dui)
         else:
-            assert train_dev_test_flag == 'test'
+            assert train_dev_test_flag in ['dev', 'test']
             line = self.id2mention[mention_uniq_id]
             gold_dui, _, surface_mention, target_anchor_included_sentence = line.split('\t')
 
@@ -245,14 +246,15 @@ class BC5CDRReader(DatasetReader):
         fields['gold_duidx'] = ArrayField(np.array(data['gold_duidx']))
         fields['mention_uniq_id'] = ArrayField(np.array(data['mention_uniq_id']))
 
-        if data['mention_uniq_id'] in self.test_mention_ids:
+        if data['mention_uniq_id'] in self.test_mention_ids or \
+                (data['mention_uniq_id'] in self.dev_mention_ids and self.dev_eval_flag):
             candidates_canonical_and_def_concatenated = [TextField(self._canonical_and_def_context_concatenator(
                 dui=self.idx2dui[idx]), self.token_indexers) for idx in data['candidate_duis_idx']]
             fields['candidates_canonical_and_def_concatenated'] = ListField(candidates_canonical_and_def_concatenated)
             fields['gold_location_in_candidates'] = ArrayField(np.array([data['gold_location_in_candidates']],
                                                                         dtype='int16'))
             fields['gold_dui_canonical_and_def_concatenated'] = MetadataField(0)
-        else: # train
+        else: # train, or dev-eval under train
             fields['candidates_canonical_and_def_concatenated'] = MetadataField(0)
             fields['gold_location_in_candidates'] = MetadataField(0)
             fields['gold_dui_canonical_and_def_concatenated'] = TextField(
@@ -260,3 +262,89 @@ class BC5CDRReader(DatasetReader):
                 self.token_indexers)
 
         return Instance(fields)
+
+
+'''
+For iterating all entities
+'''
+class EntitiesInKBLoader(DatasetReader):
+    def __init__(
+            self,
+            config,
+            max_tokens: int = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.custom_tokenizer_class = CustomTokenizer(config=config)
+        self.token_indexers = self.custom_tokenizer_class.token_indexer_returner()
+        self.max_tokens = max_tokens
+        self.config = config
+
+        # kb loading
+        self.dui2idx, self.idx2dui, self.dui2canonical, self.dui2definition = self._kb_loader()
+
+    @overrides
+    def _read(self) -> list:
+        '''
+        :param train_dev_test_flag: 'train', 'dev', 'test'
+        :return: list of instances
+        '''
+        instances = list()
+        for entity_idx, dui in tqdm(enumerate(self.idx2dui.items())):
+            data = self._one_entity_parser(entity_uniq_id=entity_idx)
+            instances.append(self.text_to_instance(data=data))
+
+        return instances
+
+
+    def _one_entity_parser(self, entity_uniq_id: int):
+        gold_dui = self.idx2dui[entity_uniq_id]
+        data = {}
+        data['entity_uniq_id'] = int(entity_uniq_id)
+
+        data['gold_dui_canonical_and_def_concatenated'] = self._canonical_and_def_context_concatenator(
+            dui=gold_dui)
+
+        return data
+
+    def _canonical_and_def_context_concatenator(self, dui):
+        canonical = self.custom_tokenizer_class.tokenize(txt=self.dui2canonical[dui])
+        definition = self.custom_tokenizer_class.tokenize(txt=self.dui2definition[dui])
+        concatenated = ['[CLS]']
+        concatenated += canonical[:self.config.max_canonical_len]
+        concatenated.append(CANONICAL_AND_DEF_CONNECTTOKEN)
+        concatenated += definition[:self.config.max_def_len]
+        concatenated.append('[SEP]')
+
+        return [Token(tokenized_word) for tokenized_word in concatenated]
+
+    @overrides
+    def text_to_instance(self, data=None) -> Instance:
+        fields = {}
+
+        fields['gold_dui_canonical_and_def_concatenated'] = TextField(
+            data['gold_dui_canonical_and_def_concatenated'], self.token_indexers)
+
+        return Instance(fields)
+
+    def _kb_loader(self):
+        kb_dir = self.config.kb_dir
+        with open(kb_dir + 'dui2canonical.json', 'r') as f:
+            dui2canonical = json.load(f)
+
+        with open(kb_dir + 'dui2definition.json', 'r') as g:
+            dui2definition = json.load(g)
+
+        with open(kb_dir + 'dui2idx.json', 'r') as h:
+            dui2idx_ = json.load(h)
+        dui2idx = {}
+        for dui, idx_str in dui2idx_.items():
+            dui2idx.update({dui: int(idx_str)})
+
+        with open(kb_dir + 'idx2dui.json', 'r') as k:
+            idx2dui_ = json.load(k)
+        idx2dui = {}
+        for idx_str, dui in idx2dui_.items():
+            idx2dui.update({int(idx_str): dui})
+
+        return dui2idx, idx2dui, dui2canonical, dui2definition
