@@ -1,6 +1,3 @@
-from typing import Dict, Iterable, List, Tuple
-from allennlp.modules.token_embedders import PretrainedTransformerEmbedder
-import torch
 from allennlp.data import (
     DataLoader,
     DatasetReader,
@@ -8,12 +5,6 @@ from allennlp.data import (
     Vocabulary,
     TextFieldTensors,
 )
-from allennlp.data.data_loaders import SimpleDataLoader
-from allennlp.models import Model
-from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
-from allennlp.training.optimizers import AdamOptimizer
-from allennlp.training.trainer import Trainer, GradientDescentTrainer
-from utils import build_one_flag_loader, build_vocab
 from dataset_reader import EntitiesInKBLoader
 from parameteres import Biencoder_params
 from utils import build_vocab, build_data_loaders, build_one_flag_loader, emb_returner, build_trainer
@@ -21,10 +12,10 @@ from encoder import Pooler_for_mention, Pooler_for_cano_and_def
 from allennlp.predictors import Predictor
 from allennlp.common.util import JsonDict
 from tqdm import tqdm
-import pdb
 from kb_loader import KBIndexerWithFaiss
 from model import BiencoderNNSearchEvaluator
 from allennlp.training.util import evaluate
+import copy
 
 class KBEntityEmbEncoder(Predictor):
     def predict(self, entitiy_unique_id: int) -> JsonDict:
@@ -60,8 +51,31 @@ def evaluate_with_kb(params, mention_encoder, model, dev_loader, test_loader):
 
     evaluate_model = BiencoderNNSearchEvaluator(params, mention_encoder, vocab, kb)
 
-    dev_eval_result = evaluate(model=evaluate_model, data_loader=dev_loader, cuda_device=0,
-                               batch_weight_key="")
+    evaluate(model=evaluate_model, data_loader=dev_loader, cuda_device=0,batch_weight_key="")
+    dev_recall = 0
+    for _, its_candidate_and_gold in evaluate_model.mention_idx2candidate_entity_idxs.items():
+        candidate_entity_idxs = its_candidate_and_gold['candidate_entity_idx']
+        gold_idx = its_candidate_and_gold['gold_entity_idx']
+
+        if gold_idx in candidate_entity_idxs:
+            dev_recall += 1
+
+    dev_recall = dev_recall / len(evaluate_model.mention_idx2candidate_entity_idxs)
+    print('dev recall@{}'.format(params.how_many_top_hits_preserved), round(dev_recall * 100, 3), '%')
+
+    evaluate_model.mention_idx2candidate_entity_idxs = copy.copy({})
+    evaluate(model=evaluate_model, data_loader=test_loader, cuda_device=0,batch_weight_key="")
+    test_recall = 0
+    for _, its_candidate_and_gold in evaluate_model.mention_idx2candidate_entity_idxs.items():
+        candidate_entity_idxs = its_candidate_and_gold['candidate_entity_idx']
+        gold_idx = its_candidate_and_gold['gold_entity_idx']
+
+        if gold_idx in candidate_entity_idxs:
+            test_recall += 1
+
+    test_recall = test_recall / len(evaluate_model.mention_idx2candidate_entity_idxs)
+    print('test recall@{}'.format(params.how_many_top_hits_preserved), round(test_recall * 100, 3), '%')
+
 
 if __name__ == '__main__':
     config = Biencoder_params()

@@ -146,13 +146,19 @@ class BiencoderNNSearchEvaluator(Model):
         self.mention_encoder = mention_encoder
         self.accuracy = CategoricalAccuracy()
         self.faiss_searcher = faiss_searcher
+        self.mention_idx2candidate_entity_idxs = {}
 
     def forward(self, context, gold_dui_canonical_and_def_concatenated, gold_duidx, mention_uniq_id,
                 candidates_canonical_and_def_concatenated, gold_location_in_candidates):
-        batch_num = context['tokens']['token_ids'].size(0)
-        device = torch.get_device(context['tokens']['token_ids']) if torch.cuda.is_available() else torch.device('cpu')
         contextualized_mention = self.mention_encoder(context)
-        pdb.set_trace()
+        distances, in_faiss_idxes = self.faiss_searcher.indexed_faiss.search(contextualized_mention.cpu().numpy(),
+                                                                             k=self.args.how_many_top_hits_preserved)
+        for mention_idx, in_faiss_candidates, gold_duidx_ in zip(mention_uniq_id.cpu().numpy(), in_faiss_idxes, gold_duidx.cpu().numpy()):
+            candidate_entity_idxes = [self.faiss_searcher.kb_idx2entity_idx[idx]
+                                                                        for idx in in_faiss_candidates]
+            self.mention_idx2candidate_entity_idxs.update({mention_idx:
+                                                              {'candidate_entity_idx':candidate_entity_idxes,
+                                                               'gold_entity_idx': gold_duidx_}})
         output = {}
 
         return output

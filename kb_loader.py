@@ -41,14 +41,3 @@ class KBIndexerWithFaiss:
 
     def _indexed_faiss_returner(self):
         return self.indexed_faiss
-
-    def search_with_emb(self, emb):
-        _, faiss_search_candidate_result_kb_idxs = self.indexed_faiss.search(
-            np.array([emb]).astype('float32'),
-            self.config.how_many_top_hits_preserved)
-        candidate_entity_idxs = []
-        for kb_idx in faiss_search_candidate_result_kb_idxs[0]:
-            candidate_entity_idx = self.kb_idx2entity_idx[kb_idx]
-            candidate_entity_idxs.append(candidate_entity_idx)
-
-        return candidate_entity_idxs
