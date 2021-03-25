@@ -14,6 +14,8 @@ from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 
 from allennlp.training.optimizers import AdamOptimizer
 from allennlp.training.trainer import Trainer, GradientDescentTrainer
+import copy
+from allennlp.training.util import evaluate
 
 
 def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
@@ -72,3 +74,48 @@ def emb_returner(config):
         exit()
     bert_embedder = PretrainedTransformerEmbedder(model_name=huggingface_model)
     return bert_embedder, bert_embedder.get_output_dim(), BasicTextFieldEmbedder({'tokens': bert_embedder})
+
+
+def candidate_recall_evaluator(dev_or_test: str, model, params, data_loader):
+    model.mention_idx2candidate_entity_idxs = copy.copy({})
+    evaluate(model=model, data_loader=data_loader, cuda_device=0, batch_weight_key="")
+    r1, r5, r10, r50 = 0, 0, 0, 0
+    for _, its_candidate_and_gold in model.mention_idx2candidate_entity_idxs.items():
+        candidate_entity_idxs = its_candidate_and_gold['candidate_entity_idx']
+        gold_idx = its_candidate_and_gold['gold_entity_idx']
+
+        if gold_idx in candidate_entity_idxs and candidate_entity_idxs.index(gold_idx) == 0:
+            r1 += 1
+            r5 += 1
+            r10 += 1
+            r50 += 1
+            continue
+
+        elif gold_idx in candidate_entity_idxs and candidate_entity_idxs.index(gold_idx) < 5:
+            r5 += 1
+            r10 += 1
+            r50 += 1
+            continue
+
+        elif gold_idx in candidate_entity_idxs and candidate_entity_idxs.index(gold_idx) < 10:
+            r10 += 1
+            r50 += 1
+            continue
+
+        elif gold_idx in candidate_entity_idxs and candidate_entity_idxs.index(gold_idx) < 50:
+            r50 += 1
+            continue
+
+        else:
+            continue
+
+    r1 = r1 / len(model.mention_idx2candidate_entity_idxs)
+    r5 = r5 / len(model.mention_idx2candidate_entity_idxs)
+    r10 = r10 / len(model.mention_idx2candidate_entity_idxs)
+    r50 = r50 / len(model.mention_idx2candidate_entity_idxs)
+
+    print('{}'.format(dev_or_test), 'evaluation result')
+    print('recall@{}'.format(params.how_many_top_hits_preserved), round(r50 * 100, 3), '%')
+    print('detail recall@1, @5, @10, @50',
+          round(r1 * 100, 3), '%', round(r5 * 100, 3), '%', round(r10 * 100, 3), '%', round(r50 * 100, 3), '%',
+          )

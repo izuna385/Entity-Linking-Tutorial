@@ -15,7 +15,7 @@ from tqdm import tqdm
 from kb_loader import KBIndexerWithFaiss
 from model import BiencoderNNSearchEvaluator
 from allennlp.training.util import evaluate
-import copy
+from utils import candidate_recall_evaluator
 
 class KBEntityEmbEncoder(Predictor):
     def predict(self, entitiy_unique_id: int) -> JsonDict:
@@ -51,31 +51,9 @@ def evaluate_with_kb(params, mention_encoder, model, dev_loader, test_loader):
 
     evaluate_model = BiencoderNNSearchEvaluator(params, mention_encoder, vocab, kb)
 
-    evaluate(model=evaluate_model, data_loader=dev_loader, cuda_device=0,batch_weight_key="")
-    dev_recall = 0
-    for _, its_candidate_and_gold in evaluate_model.mention_idx2candidate_entity_idxs.items():
-        candidate_entity_idxs = its_candidate_and_gold['candidate_entity_idx']
-        gold_idx = its_candidate_and_gold['gold_entity_idx']
-
-        if gold_idx in candidate_entity_idxs:
-            dev_recall += 1
-
-    dev_recall = dev_recall / len(evaluate_model.mention_idx2candidate_entity_idxs)
-    print('dev recall@{}'.format(params.how_many_top_hits_preserved), round(dev_recall * 100, 3), '%')
-
-    evaluate_model.mention_idx2candidate_entity_idxs = copy.copy({})
-    evaluate(model=evaluate_model, data_loader=test_loader, cuda_device=0,batch_weight_key="")
-    test_recall = 0
-    for _, its_candidate_and_gold in evaluate_model.mention_idx2candidate_entity_idxs.items():
-        candidate_entity_idxs = its_candidate_and_gold['candidate_entity_idx']
-        gold_idx = its_candidate_and_gold['gold_entity_idx']
-
-        if gold_idx in candidate_entity_idxs:
-            test_recall += 1
-
-    test_recall = test_recall / len(evaluate_model.mention_idx2candidate_entity_idxs)
-    print('test recall@{}'.format(params.how_many_top_hits_preserved), round(test_recall * 100, 3), '%')
-
+    # add mention and its candidate
+    candidate_recall_evaluator('dev', evaluate_model, params, dev_loader)
+    candidate_recall_evaluator('test', evaluate_model, params, test_loader)
 
 if __name__ == '__main__':
     config = Biencoder_params()

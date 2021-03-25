@@ -45,9 +45,14 @@ if __name__ == '__main__':
     dev_eval_result = evaluate(model=squeezed_evaluator_model, data_loader=dev_loader, cuda_device=0,
                                batch_weight_key="")
     print(dev_eval_result)
+    print('dev recall@candidate num {} %:'.format(params.max_candidates_num),
+          round(reader.dev_recall / len(reader.dev_mention_ids) * 100, 3))
     test_eval_result = evaluate(model=squeezed_evaluator_model, data_loader=test_loader, cuda_device=0,
                                 batch_weight_key="")
     print(test_eval_result)
+    print('test recall@candidate num {} %:'.format(params.max_candidates_num),
+          round(reader.test_recall / len(reader.test_mention_ids) * 100, 3))
+    print('test recall:', round(reader.dev_recall / len(reader.dev_mention_ids) * 100, 3))
 
     evaluate_with_kb(model=model, mention_encoder=mention_encoder,
                      params=params, dev_loader=dev_loader, test_loader=test_loader)

@@ -45,6 +45,8 @@ class Biencoder_params:
 
         # for entire kb eval.
         parser.add_argument('-search_method_for_faiss', action='store', default='indexflatip', type=str)
+
+        # Note: Currently we do not support other candidate numbers. See evaluate_with_entire_kb.py.
         parser.add_argument('-how_many_top_hits_preserved', action='store', default=50, type=int)
 
         self.opts = parser.parse_args(sys.argv[1:])

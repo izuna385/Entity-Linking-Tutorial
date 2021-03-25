@@ -40,6 +40,8 @@ class BC5CDRReader(DatasetReader):
         self.candidate_generator = CandidateGeneratorForTestDataset(config=config)
         self.dev_eval_flag = 0
 
+        self.dev_recall, self.test_recall = 0, 0
+
     @overrides
     def _read(self, train_dev_test_flag: str) -> list:
         '''
@@ -221,6 +223,11 @@ class BC5CDRReader(DatasetReader):
                 for idx, cand_idx in enumerate(candidate_duis_idx):
                     if cand_idx == self.dui2idx[gold_dui]:
                         gold_location_in_candidates[idx] += 1
+
+                        if train_dev_test_flag == 'dev':
+                            self.dev_recall += 1
+                        if train_dev_test_flag == 'test':
+                            self.test_recall += 1
 
             data['gold_location_in_candidates'] = gold_location_in_candidates
             data['mention_uniq_id'] = int(mention_uniq_id)
