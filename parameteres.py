@@ -43,6 +43,12 @@ class Biencoder_params:
         parser.add_argument('-candidates_dataset', action='store', default='./candidates.pkl', type=str)
         parser.add_argument('-max_candidates_num', action='store', default=10, type=int)
 
+        # for entire kb eval.
+        parser.add_argument('-search_method_for_faiss', action='store', default='indexflatip', type=str)
+
+        # Note: Currently we do not support other candidate numbers. See evaluate_with_entire_kb.py.
+        parser.add_argument('-how_many_top_hits_preserved', action='store', default=50, type=int)
+
         self.opts = parser.parse_args(sys.argv[1:])
         print('\n===PARAMETERS===')
         for arg in vars(self.opts):
