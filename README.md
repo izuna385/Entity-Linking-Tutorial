@@ -27,9 +27,18 @@ $ pip install -r requirements.txt
 `$ python3 main.py`
 
 # Parameters
-WIP
+We only here note critical parameters for training and evaluation. For further detail, see `parameters.py`.
+
+| Parameter Name          | Description                                                                                                                                                            | Default     |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| `-batch_size_for_train`    | Batch size during learning. The more there are, the more the encoder will learn to choose the correct answer from more negative examples.                              | `16`          |
+| `-lr`                      | Learning rate.                                                                                                                                                         | `1e-5`        |
+| `-max_candidates_num`     | Determine how many candidates are to be generated for each mention by using surface form.                                                                              | `5`           |
+| `-search_method_for_faiss` | This specifies whether to use the cosine distance (`cossim`), inner product (`indexflatip`), or L2 distance (`indexflatl2`) when performing approximate neighborhood search. | `indexflatip` |
 
 # Result
+With default parameters.
+
 * Surface-Candidate based
   
   | Generated Candidates Num | 5     | 10    | 20    |
@@ -39,9 +48,9 @@ WIP
   | test_recall              | 74.35 | 77.14 | 78.25 |
   | test_acc                 | 58.51 | 51.38 | 45.69 |
 
-* ANN-search Based
-  
-  * Generated Candidates Num: 50 (Fixed)
+* ANN-search Based 
+
+  (Generated Candidates Num: 50 (Fixed))
   
   | Recall@X   | 1 (Acc.) | 5     | 10    | 50    |
   |------------|----------|-------|-------|-------|
