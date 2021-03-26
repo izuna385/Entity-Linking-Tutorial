@@ -60,7 +60,7 @@ With default parameters.
 
 
 # Docs for English
-WIP
+* https://izuna385.medium.com/building-bi-encoder-based-entity-linking-system-with-transformer-6c111d86500
 
 # Docs for Japanese
 * [Part 1: History](https://qiita.com/izuna385/items/9d658620b9b96b0b4ec9)
