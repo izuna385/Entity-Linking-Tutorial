@@ -136,7 +136,7 @@ class BiencoderSqueezedCandidateEvaluator(Model):
 
 class BiencoderNNSearchEvaluator(Model):
     '''
-    For dev and test evaluation with Surface-based candidates.
+    For dev and test evaluation with Approximante Nearest Neighbor Search based candidates.
     '''
     def __init__(self, args,
                  mention_encoder: Seq2VecEncoder,
