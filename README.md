@@ -19,7 +19,9 @@ $ pip install -r requirements.txt
 
 * Third, download [BC5CDR dataset](https://biocreative.bioinformatics.udel.edu/resources/corpora/biocreative-v-cdr-corpus/) to `./dataset/` and unzip.
 
-* Then, run `python3 preprocess_mesh.py`
+* You have to place `CDR_DevelopmentSet.PubTator.txt`, `CDR_TestSet.PubTator.txt` and `CDR_TrainingSet.PubTator.txt` under `./dataset/`.
+
+* Then, run `python3 BC5CDRpreprocess.py` and `python3 preprocess_mesh.py`.
 
 # Model and Scoring
 ![scoring](./docs/scoring.png)
