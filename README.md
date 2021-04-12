@@ -17,7 +17,9 @@ $ pip install -r requirements.txt
 ```
 * Second, download preprocessed files from [here](https://drive.google.com/drive/folders/1P-iXskc-hbqXateWh3wRknni_knqsagN?usp=sharing), then unzip.
 
-* Third, run `python3 preprocess_mesh.py`
+* Third, download [BC5CDR dataset](https://biocreative.bioinformatics.udel.edu/resources/corpora/biocreative-v-cdr-corpus/) to `./dataset/` and unzip.
+
+* Then, run `python3 preprocess_mesh.py`
 
 # Model and Scoring
 ![scoring](./docs/scoring.png)
