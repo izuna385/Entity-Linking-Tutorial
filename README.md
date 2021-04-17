@@ -28,7 +28,10 @@ $ pip3 install -r requirements.txt
 * Derived from [[Logeswaran et al., '19]](https://arxiv.org/abs/1906.07348)
 
 # Experiment and Evaluation
-`$ python3 main.py`
+```
+$ rm -r serialization_dir # Remove pre-experiment result if you run `python3 main.py -debug` for debugging.
+$ python3 main.py
+```
 
 # Parameters
 We only here note critical parameters for training and evaluation. For further detail, see `parameters.py`.
@@ -71,6 +74,7 @@ With default parameters.
 * [Part 2: Preprocecssing](https://qiita.com/izuna385/items/c2918874fbb564acf1e0)
 * [Part 3: Model and Evaluation](https://qiita.com/izuna385/items/367b7b365a2791ee4f8e)
 * [Part 4: ANN-search with Faiss](https://qiita.com/izuna385/items/bce14031e8a443a0db44)
+* [Sub Contents: Reproduction of experimental results using Colab-Pro](https://qiita.com/izuna385/items/bbac95594e20e6990189)
 
 # LICENSE
 MIT
