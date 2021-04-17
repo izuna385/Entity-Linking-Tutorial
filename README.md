@@ -20,7 +20,7 @@ $ conda activate allennlp
 $ pip3 install -r requirements.txt
 ```
 
-# Preprosessing
+# Preprocessing
 
 * First, download preprocessed files from [here](https://drive.google.com/drive/folders/1P-iXskc-hbqXateWh3wRknni_knqsagN?usp=sharing), then unzip.
 
