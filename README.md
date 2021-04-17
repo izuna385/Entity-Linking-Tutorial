@@ -13,7 +13,7 @@
 ```
 $ conda create -n allennlp python=3.7
 $ conda activate allennlp
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 * Second, download preprocessed files from [here](https://drive.google.com/drive/folders/1P-iXskc-hbqXateWh3wRknni_knqsagN?usp=sharing), then unzip.
 
