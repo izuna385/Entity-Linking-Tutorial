@@ -8,16 +8,23 @@
   
     ![entire_biencoder](./docs/biencoder.png)
 
+# Tutorial with Colab-Pro.
+See [here](./docs/Colab_Pro_Tutorial.md).
+
 # Environment Setup
 * First, create base environment with conda.
 ```
+# If you don't use colab-pro, create environment from conda.
 $ conda create -n allennlp python=3.7
 $ conda activate allennlp
 $ pip3 install -r requirements.txt
 ```
-* Second, download preprocessed files from [here](https://drive.google.com/drive/folders/1P-iXskc-hbqXateWh3wRknni_knqsagN?usp=sharing), then unzip.
 
-* Third, download [BC5CDR dataset](https://biocreative.bioinformatics.udel.edu/resources/corpora/biocreative-v-cdr-corpus/) to `./dataset/` and unzip.
+# Preprosessing
+
+* First, download preprocessed files from [here](https://drive.google.com/drive/folders/1P-iXskc-hbqXateWh3wRknni_knqsagN?usp=sharing), then unzip.
+
+* Second, download [BC5CDR dataset](https://biocreative.bioinformatics.udel.edu/resources/corpora/biocreative-v-cdr-corpus/) to `./dataset/` and unzip.
 
 * You have to place `CDR_DevelopmentSet.PubTator.txt`, `CDR_TestSet.PubTator.txt` and `CDR_TrainingSet.PubTator.txt` under `./dataset/`.
 
