@@ -52,15 +52,21 @@ We only here note critical parameters for training and evaluation. For further d
 
 
 # Result
-With default parameters.
 
-* Surface-Candidate based
-  
+* Surface-Candidate based recall
+
   | Generated Candidates Num | 5     | 10    | 20    |
   |--------------------------|-------|-------|-------|
   | dev_recall               | 76.80 | 79.91 | 80.92 |
-  | dev_acc                  | 59.85 | 52.56 | 47.23 |
   | test_recall              | 74.35 | 77.14 | 78.25 |
+
+## `batch_size_for_trai: 16`
+
+* Surface-Candidate based acc.
+  
+  | Generated Candidates Num | 5     | 10    | 20    |
+  |--------------------------|-------|-------|-------|
+  | dev_acc                  | 59.85 | 52.56 | 47.23 |
   | test_acc                 | 58.51 | 51.38 | 45.69 |
 
 * ANN-search Based 
@@ -71,6 +77,24 @@ With default parameters.
   |------------|----------|-------|-------|-------|
   | dev_recall | 21.58    | 42.28 | 50.48 | 67.11 |
   | test_recall| 21.50    | 40.29 | 47.95 | 64.52 |
+
+## `batch_size_for_train: 48`
+
+* Surface-Candidate based acc.
+  
+  | Generated Candidates Num | 5     | 10    | 20    |
+  |--------------------------|-------|-------|-------|
+  | dev_acc                  | 72.39 | 68.21 | 65.40 |
+  | test_acc                 | 70.95 | 66.87 | 63.72 |
+
+* ANN-search Based 
+
+  (Generated Candidates Num: 50 (Fixed))
+  
+  | Recall@X   | 1 (Acc.) | 5     | 10    | 50    |
+  |------------|----------|-------|-------|-------|
+  | dev_recall | 58.86    | 74.33 | 78.14 | 83.10 |
+  | test_recall| 57.66    | 73.14 | 76.73 | 81.39 |
 
 
 # Docs for English
