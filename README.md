@@ -60,7 +60,7 @@ We only here note critical parameters for training and evaluation. For further d
   | dev_recall               | 76.80 | 79.91 | 80.92 |
   | test_recall              | 74.35 | 77.14 | 78.25 |
 
-## `batch_size_for_trai: 16`
+## `batch_size_for_train: 16`
 
 * Surface-Candidate based acc.
   
