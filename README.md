@@ -1,17 +1,21 @@
 # Entity-Linking-Tutorial
-* Tutorial for Bi-encoder based Entity Linking
-  - Surface-Candidate based
-  
-    ![biencoder](./docs/candidate_biencoder.png)
-  
-  - ANN-search based
-  
-    ![entire_biencoder](./docs/biencoder.png)
+* In this tutorial, we will implement a Bi-encoder based entity disambiguation system using the BC5CDR dataset and data from the MeSH knowledge base.
 
-# Tutorial with Colab-Pro.
+* We will compare the surface-form based candidate generation with the Bi-encoder based one, to understand the power of Bi-encoder model in entity linking.
+## Docs for English
+* https://izuna385.medium.com/building-bi-encoder-based-entity-linking-system-with-transformer-6c111d86500
+
+## Docs for Japanese
+* [Part 1: History](https://qiita.com/izuna385/items/9d658620b9b96b0b4ec9)
+* [Part 2: Preprocecssing](https://qiita.com/izuna385/items/c2918874fbb564acf1e0)
+* [Part 3: Model and Evaluation](https://qiita.com/izuna385/items/367b7b365a2791ee4f8e)
+* [Part 4: ANN-search with Faiss](https://qiita.com/izuna385/items/bce14031e8a443a0db44)
+* [Sub Contents: Reproduction of experimental results using Colab-Pro](https://qiita.com/izuna385/items/bbac95594e20e6990189)
+
+## Tutorial with Colab-Pro.
 See [here](./docs/Colab_Pro_Tutorial.md).
 
-# Environment Setup
+## Environment Setup
 * First, create base environment with conda.
 ```
 # If you don't use colab-pro, create environment from conda.
@@ -20,7 +24,7 @@ $ conda activate allennlp
 $ pip3 install -r requirements.txt
 ```
 
-# Preprocessing
+## Preprocessing
 
 * First, download preprocessed files from [here](https://drive.google.com/drive/folders/1P-iXskc-hbqXateWh3wRknni_knqsagN?usp=sharing), then unzip.
 
@@ -30,17 +34,32 @@ $ pip3 install -r requirements.txt
 
 * Then, run `python3 BC5CDRpreprocess.py` and `python3 preprocess_mesh.py`.
 
-# Model and Scoring
-![scoring](./docs/scoring.png)
-* Derived from [[Logeswaran et al., '19]](https://arxiv.org/abs/1906.07348)
+## Models and Scoring
+### Models
+* Surface-Candidate based
+  
+  ![biencoder](./docs/candidate_biencoder.png)
+  
+* ANN-search based
+  
+  ![entire_biencoder](./docs/biencoder.png)
 
-# Experiment and Evaluation
+### Scoring
+* Default: Dot product between mention and predicted entity.
+
+  ![scoring](./docs/scoring.png)
+
+  * Derived from [[Logeswaran et al., '19]](https://arxiv.org/abs/1906.07348)
+
+* L2-distance and cosine similarity are also supported.
+
+## Experiment and Evaluation
 ```
 $ rm -r serialization_dir # Remove pre-experiment result if you run `python3 main.py -debug` for debugging.
 $ python3 main.py
 ```
 
-# Parameters
+## Parameters
 We only here note critical parameters for training and evaluation. For further detail, see `parameters.py`.
 
 | Parameter Name            | Description                                                                                                                                                                  | Default      |
@@ -51,7 +70,7 @@ We only here note critical parameters for training and evaluation. For further d
 | `search_method_for_faiss` | This specifies whether to use the cosine distance (`cossim`), inner product (`indexflatip`), or L2 distance (`indexflatl2`) when performing approximate neighborhood search. | `indexflatip`|
 
 
-# Result
+## Result
 
 * Surface-Candidate based recall
 
@@ -60,7 +79,7 @@ We only here note critical parameters for training and evaluation. For further d
   | dev_recall               | 76.80 | 79.91 | 80.92 |
   | test_recall              | 74.35 | 77.14 | 78.25 |
 
-## `batch_size_for_train: 16`
+### `batch_size_for_train: 16`
 
 * Surface-Candidate based acc.
   
@@ -78,7 +97,7 @@ We only here note critical parameters for training and evaluation. For further d
   | dev_recall | 21.58    | 42.28 | 50.48 | 67.11 |
   | test_recall| 21.50    | 40.29 | 47.95 | 64.52 |
 
-## `batch_size_for_train: 48`
+### `batch_size_for_train: 48`
 
 * Surface-Candidate based acc.
   
@@ -96,16 +115,5 @@ We only here note critical parameters for training and evaluation. For further d
   | dev_recall | 58.86    | 74.33 | 78.14 | 83.10 |
   | test_recall| 57.66    | 73.14 | 76.73 | 81.39 |
 
-
-# Docs for English
-* https://izuna385.medium.com/building-bi-encoder-based-entity-linking-system-with-transformer-6c111d86500
-
-# Docs for Japanese
-* [Part 1: History](https://qiita.com/izuna385/items/9d658620b9b96b0b4ec9)
-* [Part 2: Preprocecssing](https://qiita.com/izuna385/items/c2918874fbb564acf1e0)
-* [Part 3: Model and Evaluation](https://qiita.com/izuna385/items/367b7b365a2791ee4f8e)
-* [Part 4: ANN-search with Faiss](https://qiita.com/izuna385/items/bce14031e8a443a0db44)
-* [Sub Contents: Reproduction of experimental results using Colab-Pro](https://qiita.com/izuna385/items/bbac95594e20e6990189)
-
-# LICENSE
+## LICENSE
 MIT
