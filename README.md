@@ -21,7 +21,7 @@ See [here](./docs/Colab_Pro_Tutorial.md).
 # If you don't use colab-pro, create environment from conda.
 $ conda create -n allennlp python=3.7
 $ conda activate allennlp
-$ pip3 install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ## Preprocessing

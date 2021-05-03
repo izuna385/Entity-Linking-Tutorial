@@ -42,7 +42,7 @@
 ```
 $ git clone https://github.com/izuna385/Entity-Linking-Tutorial
 $ cd https://github.com/izuna385/Entity-Linking-Tutorial
-$ pip3 install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ### Preprocessed file
